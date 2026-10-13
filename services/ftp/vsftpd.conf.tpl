@@ -1,0 +1,17 @@
+listen=YES
+listen_ipv6=NO
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+chroot_local_user=YES
+allow_writeable_chroot=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+pasv_enable=YES
+pasv_min_port=30000
+pasv_max_port=30009
+xferlog_enable=YES
+dirmessage_enable=YES
+ftpd_banner=F-${NCC} - P0.0 FTP
+seccomp_sandbox=NO

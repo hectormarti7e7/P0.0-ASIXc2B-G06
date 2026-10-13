@@ -1,0 +1,244 @@
+# P0.0 - Desplegament d'infraestructura amb Docker
+# Tot el que abans eren màquines virtuals ara són contenidors.
+# Variables a .env (copia .env.example). NCC = número d'equip (N01, N02...)
+name: p00-${NCC:-N01}
+
+x-base: &base
+  restart: unless-stopped
+  cap_add: [NET_ADMIN]
+
+networks:
+  dmz:
+    ipam:
+      config: [{ subnet: 172.20.1.0/24, gateway: 172.20.1.1 }]
+  intranet:
+    ipam:
+      config: [{ subnet: 172.20.2.0/24, gateway: 172.20.2.1 }]
+  nat:
+    ipam:
+      config: [{ subnet: 172.20.3.0/24, gateway: 172.20.3.1 }]
+
+volumes:
+  db-data:
+  ftp-data:
+  kuma-data:
+
+services:
+  # ------------------------------------------------------------ ROUTER
+  router:
+    <<: *base
+    build: { context: ./images/base }
+    image: p00-base
+    container_name: R-${NCC:-N01}
+    hostname: R-${NCC:-N01}
+    command: ["sleep", "infinity"]
+    sysctls: { net.ipv4.ip_forward: "1" }
+    environment:
+      NCC: ${NCC:-N01}
+      GATEWAY: 172.20.3.1          # sortida a Internet (xarxa NAT)
+    volumes:
+      - ./services/router/init.sh:/opt/init.sh:ro
+    ports:                         # "port forwarding" del router cap a la DMZ
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${FTP_PORT:-21}:21"
+      - "30000-30009:30000-30009"
+      - "${SSH_PORT:-2222}:2222"
+    networks:
+      nat:      { ipv4_address: 172.20.3.2 }
+      dmz:      { ipv4_address: 172.20.1.254 }
+      intranet: { ipv4_address: 172.20.2.254 }
+    healthcheck:
+      test: ["CMD-SHELL", "iptables -t nat -S POSTROUTING | grep -q MASQUERADE"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # ------------------------------------------------------------ INTRANET
+  dns:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "dnsmasq" } }
+    image: p00-dns
+    container_name: DNS-${NCC:-N01}
+    hostname: DNS-${NCC:-N01}
+    command: ["dnsmasq", "-k", "--conf-file=/etc/dnsmasq.p00.conf", "--log-facility=-"]
+    environment: { NCC: "${NCC:-N01}", GATEWAY: 172.20.2.254 }
+    volumes:
+      - ./services/dns/init.sh:/opt/init.sh:ro
+      - ./services/dns/dnsmasq.conf.tpl:/opt/dnsmasq.conf.tpl:ro
+    networks:
+      intranet: { ipv4_address: 172.20.2.53 }
+    depends_on: { router: { condition: service_healthy } }
+
+  dhcp:
+    <<: *base
+    cap_add: [NET_ADMIN, NET_RAW]
+    build: { context: ./images/base, args: { PKGS: "dnsmasq" } }
+    image: p00-dhcp
+    container_name: DHCP-${NCC:-N01}
+    hostname: DHCP-${NCC:-N01}
+    command: ["dnsmasq", "-k", "--conf-file=/etc/dnsmasq.p00.conf", "--log-facility=-"]
+    environment: { NCC: "${NCC:-N01}", GATEWAY: 172.20.2.254 }
+    volumes:
+      - ./services/dhcp/init.sh:/opt/init.sh:ro
+      - ./services/dhcp/dnsmasq.conf.tpl:/opt/dnsmasq.conf.tpl:ro
+    networks:
+      intranet: { ipv4_address: 172.20.2.67 }
+    depends_on: { router: { condition: service_healthy } }
+
+  db:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "mysql-server mysql-client" } }
+    image: p00-db
+    container_name: B-${NCC:-N01}
+    hostname: B-${NCC:-N01}
+    command: ["mysqld", "--user=mysql", "--bind-address=0.0.0.0", "--skip-name-resolve"]
+    environment:
+      NCC: ${NCC:-N01}
+      GATEWAY: 172.20.2.254
+      DB_NAME: equipaments
+      DB_USER: bchecker
+      DB_PASS: bchecker121
+      DB_RO_USER: webapp
+      DB_RO_PASS: webapp121
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./services/db/init.sh:/opt/init.sh:ro
+      - ./services/db/init.sql:/opt/init.sql:ro
+    networks:
+      intranet: { ipv4_address: 172.20.2.10 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h127.0.0.1 -ubchecker -pbchecker121 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 60s
+
+  db-loader:                       # càrrega única del CSV d'Open Data BCN
+    build: { context: ./images/base, args: { PKGS: "python3 python3-pymysql" } }
+    image: p00-loader
+    container_name: LOADER-${NCC:-N01}
+    hostname: LOADER-${NCC:-N01}
+    restart: "no"
+    cap_add: [NET_ADMIN]
+    command: ["python3", "/opt/load_csv.py"]
+    environment:
+      GATEWAY: 172.20.2.254
+      DNS_SERVER: 172.20.2.53
+      DB_HOST: B-${NCC:-N01}
+      DB_NAME: equipaments
+      DB_USER: bchecker
+      DB_PASS: bchecker121
+      CSV_URL: ${CSV_URL}
+      CSV_FILE: /data/equipaments.csv   # alternativa local si no hi ha Internet
+    volumes:
+      - ./services/db/load_csv.py:/opt/load_csv.py:ro
+      - ./data:/data:ro
+    networks:
+      intranet: { ipv4_address: 172.20.2.11 }
+    depends_on:
+      router: { condition: service_healthy }
+      dns:    { condition: service_started }
+      db:     { condition: service_healthy }
+
+  monitor:                         # Monitor de xarxes (Uptime Kuma)
+    build: { context: ./services/monitor }
+    image: p00-monitor
+    container_name: MON-${NCC:-N01}
+    hostname: MON-${NCC:-N01}
+    restart: unless-stopped
+    cap_add: [NET_ADMIN]
+    environment: { GATEWAY: 172.20.2.254 }
+    volumes: [ "kuma-data:/app/data" ]
+    ports: [ "${MONITOR_PORT:-3001}:3001" ]
+    networks:
+      intranet: { ipv4_address: 172.20.2.20 }
+    depends_on: { router: { condition: service_healthy } }
+
+  pc-linux:                        # Client Linux
+    <<: *base
+    cap_add: [NET_ADMIN, NET_RAW]
+    build: { context: ./images/base, args: { PKGS: "isc-dhcp-client nmap mysql-client ftp lynx traceroute sshpass" } }
+    image: p00-client
+    container_name: PC-L-${NCC:-N01}
+    hostname: PC-L-${NCC:-N01}
+    command: ["sleep", "infinity"]
+    environment: { GATEWAY: 172.20.2.254, DNS_SERVER: 172.20.2.53 }
+    networks:
+      intranet: { ipv4_address: 172.20.2.50 }
+    depends_on: { router: { condition: service_healthy } }
+
+  pc-windows:                      # Client Windows (EXPERIMENTAL, necessita KVM)
+    profiles: ["windows"]
+    image: dockurr/windows
+    container_name: PC-W-${NCC:-N01}
+    environment: { VERSION: "10", USERNAME: bchecker, PASSWORD: bchecker121 }
+    devices: [ "/dev/kvm" ]
+    cap_add: [NET_ADMIN]
+    ports: [ "8006:8006" ]         # visor web del Windows
+    networks:
+      intranet: { ipv4_address: 172.20.2.60 }
+    stop_grace_period: 2m
+
+  # ------------------------------------------------------------ DMZ
+  web:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "nginx openssl python3-flask python3-pymysql gunicorn" } }
+    image: p00-web
+    container_name: W-${NCC:-N01}
+    hostname: W-${NCC:-N01}
+    command: ["nginx", "-g", "daemon off;"]
+    environment:
+      NCC: ${NCC:-N01}
+      GATEWAY: 172.20.1.254
+      DNS_SERVER: 172.20.2.53
+      DB_HOST: B-${NCC:-N01}
+      DB_NAME: equipaments
+      DB_USER: webapp
+      DB_PASS: webapp121
+      APP_AUTH: ${APP_AUTH:-true}
+      APP_USER: bchecker
+      APP_PASS: bchecker121
+    volumes:
+      - ./services/web/init.sh:/opt/init.sh:ro
+      - ./services/web/nginx.conf:/etc/nginx/conf.d/p00.conf:ro
+      - ./services/web/app:/srv/app:ro
+    networks:
+      dmz: { ipv4_address: 172.20.1.10 }
+    depends_on:
+      router: { condition: service_healthy }
+      db:     { condition: service_healthy }
+
+  ftp:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "vsftpd" } }
+    image: p00-ftp
+    container_name: F-${NCC:-N01}
+    hostname: F-${NCC:-N01}
+    command: ["vsftpd", "/etc/vsftpd.conf"]
+    environment:
+      GATEWAY: 172.20.1.254
+      DNS_SERVER: 172.20.2.53
+      PUBLIC_IP: ${PUBLIC_IP:-}
+    volumes:
+      - ftp-data:/home/bchecker/ftp
+      - ./services/ftp/init.sh:/opt/init.sh:ro
+      - ./services/ftp/vsftpd.conf.tpl:/opt/vsftpd.conf.tpl:ro
+    networks:
+      dmz: { ipv4_address: 172.20.1.11 }
+    depends_on: { router: { condition: service_healthy } }
+
+  ssh:                             # Servidor SSH / bastió
+    <<: *base
+    build: { context: ./images/base }
+    image: p00-base
+    container_name: S-${NCC:-N01}
+    hostname: S-${NCC:-N01}
+    command: ["/usr/sbin/sshd", "-D", "-e"]
+    environment: { GATEWAY: 172.20.1.254, DNS_SERVER: 172.20.2.53, SSHD_FG: "1" }
+    volumes:
+      - ./services/ssh/init.sh:/opt/init.sh:ro
+    networks:
+      dmz: { ipv4_address: 172.20.1.12 }
+    depends_on: { router: { condition: service_healthy } }

@@ -1,0 +1,9 @@
+port=0
+interface=eth0
+dhcp-authoritative
+dhcp-range=172.20.2.100,172.20.2.200,255.255.255.0,12h
+dhcp-option=option:router,172.20.2.254
+dhcp-option=option:dns-server,172.20.2.53
+dhcp-option=option:domain-name,asix.local
+dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+log-dhcp
