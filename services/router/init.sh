@@ -2,16 +2,16 @@
 # Router R-NCC: enrutament entre DMZ, Intranet i NAT + firewall + port-forwarding.
 set -e
 
-DMZ_NET=172.20.1.; INT_NET=172.20.2.; NAT_NET=172.20.3.
-W_IP=172.20.1.10; F_IP=172.20.1.11; S_IP=172.20.1.12
-B_IP=172.20.2.10; DNS_IP=172.20.2.53
+DMZ_NET=10.213.1.; INT_NET=10.213.2.; NAT_NET=10.213.3.
+W_IP=10.213.1.10; F_IP=10.213.1.11; S_IP=10.213.1.12
+B_IP=10.213.2.10; DNS_IP=10.213.2.53
 
 iface_of() { ip -o -4 addr show | awk -v p="$1" 'index($4,p)==1 {print $2; exit}'; }
 IF_DMZ=$(iface_of $DMZ_NET); IF_INT=$(iface_of $INT_NET); IF_NAT=$(iface_of $NAT_NET)
 echo "[router] DMZ=$IF_DMZ INTRANET=$IF_INT NAT=$IF_NAT"
 
 # Sortida a Internet pel gateway de la xarxa NAT
-ip route replace default via 172.20.3.1
+ip route replace default via 10.213.3.1
 
 iptables -F; iptables -t nat -F; iptables -X
 iptables -P INPUT ACCEPT

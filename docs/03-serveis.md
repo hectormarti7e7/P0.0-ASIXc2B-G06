@@ -7,7 +7,7 @@ Tota la configuració és fitxers del repositori; res es configura a mà dins de
 | Imatge base | `images/base/Dockerfile`, `entrypoint.sh` | Ubuntu 22.04 + sshd + usuari `bchecker`. L'entrypoint fixa el gateway al router, el DNS, executa `/opt/init.sh` del servei i arrenca sshd. |
 | Router R-NCC | `services/router/init.sh` | `ip_forward`, regles `iptables` (FORWARD DROP), DNAT cap a la DMZ i MASQUERADE cap a NAT. |
 | DNS | `services/dns/dnsmasq.conf.tpl` | Resol R-NCC i R (router) i la resta d'equips (`*.asix.local`); reenvia a 1.1.1.1 / 9.9.9.9. |
-| DHCP | `services/dhcp/dnsmasq.conf.tpl` | Rang 172.20.2.100-200, gateway = router, DNS = DNS-NCC. |
+| DHCP | `services/dhcp/dnsmasq.conf.tpl` | Rang 10.213.2.100-200, gateway = router, DNS = DNS-NCC. |
 | BBDD B-NCC | `services/db/*` | MySQL 8, base `equipaments`, usuaris `bchecker` (tot) i `webapp` (només lectura). `load_csv.py` descarrega el CSV i crea la taula `equipaments_educacio` a partir de la capçalera. |
 | Web W-NCC | `services/web/*` | nginx (80/443, cert autosignat) → gunicorn → Flask. Mostra les taules (`/`, `/t/<taula>`, `/api/<taula>`). Autenticació bàsica bchecker. |
 | FTP F-NCC | `services/ftp/*` | vsftpd amb usuari `bchecker`, mode passiu 30000-30009, volum persistent. |

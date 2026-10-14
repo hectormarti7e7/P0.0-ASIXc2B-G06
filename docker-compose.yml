@@ -10,13 +10,13 @@ x-base: &base
 networks:
   dmz:
     ipam:
-      config: [{ subnet: 172.20.1.0/24, gateway: 172.20.1.1 }]
+      config: [{ subnet: 10.213.1.0/24, gateway: 10.213.1.1 }]
   intranet:
     ipam:
-      config: [{ subnet: 172.20.2.0/24, gateway: 172.20.2.1 }]
+      config: [{ subnet: 10.213.2.0/24, gateway: 10.213.2.1 }]
   nat:
     ipam:
-      config: [{ subnet: 172.20.3.0/24, gateway: 172.20.3.1 }]
+      config: [{ subnet: 10.213.3.0/24, gateway: 10.213.3.1 }]
 
 volumes:
   db-data:
@@ -35,7 +35,7 @@ services:
     sysctls: { net.ipv4.ip_forward: "1" }
     environment:
       NCC: ${NCC:-N01}
-      GATEWAY: 172.20.3.1          # sortida a Internet (xarxa NAT)
+      GATEWAY: 10.213.3.1          # sortida a Internet (xarxa NAT)
     volumes:
       - ./services/router/init.sh:/opt/init.sh:ro
     ports:                         # "port forwarding" del router cap a la DMZ
@@ -45,9 +45,9 @@ services:
       - "30000-30009:30000-30009"
       - "${SSH_PORT:-2222}:2222"
     networks:
-      nat:      { ipv4_address: 172.20.3.2 }
-      dmz:      { ipv4_address: 172.20.1.254 }
-      intranet: { ipv4_address: 172.20.2.254 }
+      nat:      { ipv4_address: 10.213.3.2, gw_priority: 100 }
+      dmz:      { ipv4_address: 10.213.1.254 }
+      intranet: { ipv4_address: 10.213.2.254 }
     healthcheck:
       test: ["CMD-SHELL", "iptables -t nat -S POSTROUTING | grep -q MASQUERADE"]
       interval: 3s
@@ -62,12 +62,12 @@ services:
     container_name: DNS-${NCC:-N01}
     hostname: DNS-${NCC:-N01}
     command: ["dnsmasq", "-k", "--conf-file=/etc/dnsmasq.p00.conf", "--log-facility=-"]
-    environment: { NCC: "${NCC:-N01}", GATEWAY: 172.20.2.254 }
+    environment: { NCC: "${NCC:-N01}", GATEWAY: 10.213.2.254 }
     volumes:
       - ./services/dns/init.sh:/opt/init.sh:ro
       - ./services/dns/dnsmasq.conf.tpl:/opt/dnsmasq.conf.tpl:ro
     networks:
-      intranet: { ipv4_address: 172.20.2.53 }
+      intranet: { ipv4_address: 10.213.2.53 }
     depends_on: { router: { condition: service_healthy } }
 
   dhcp:
@@ -78,12 +78,12 @@ services:
     container_name: DHCP-${NCC:-N01}
     hostname: DHCP-${NCC:-N01}
     command: ["dnsmasq", "-k", "--conf-file=/etc/dnsmasq.p00.conf", "--log-facility=-"]
-    environment: { NCC: "${NCC:-N01}", GATEWAY: 172.20.2.254 }
+    environment: { NCC: "${NCC:-N01}", GATEWAY: 10.213.2.254 }
     volumes:
       - ./services/dhcp/init.sh:/opt/init.sh:ro
       - ./services/dhcp/dnsmasq.conf.tpl:/opt/dnsmasq.conf.tpl:ro
     networks:
-      intranet: { ipv4_address: 172.20.2.67 }
+      intranet: { ipv4_address: 10.213.2.67 }
     depends_on: { router: { condition: service_healthy } }
 
   db:
@@ -95,7 +95,7 @@ services:
     command: ["mysqld", "--user=mysql", "--bind-address=0.0.0.0", "--skip-name-resolve"]
     environment:
       NCC: ${NCC:-N01}
-      GATEWAY: 172.20.2.254
+      GATEWAY: 10.213.2.254
       DB_NAME: equipaments
       DB_USER: bchecker
       DB_PASS: bchecker121
@@ -106,7 +106,7 @@ services:
       - ./services/db/init.sh:/opt/init.sh:ro
       - ./services/db/init.sql:/opt/init.sql:ro
     networks:
-      intranet: { ipv4_address: 172.20.2.10 }
+      intranet: { ipv4_address: 10.213.2.10 }
     depends_on: { router: { condition: service_healthy } }
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h127.0.0.1 -ubchecker -pbchecker121 --silent"]
@@ -124,8 +124,8 @@ services:
     cap_add: [NET_ADMIN]
     command: ["python3", "/opt/load_csv.py"]
     environment:
-      GATEWAY: 172.20.2.254
-      DNS_SERVER: 172.20.2.53
+      GATEWAY: 10.213.2.254
+      DNS_SERVER: 10.213.2.53
       DB_HOST: B-${NCC:-N01}
       DB_NAME: equipaments
       DB_USER: bchecker
@@ -136,7 +136,7 @@ services:
       - ./services/db/load_csv.py:/opt/load_csv.py:ro
       - ./data:/data:ro
     networks:
-      intranet: { ipv4_address: 172.20.2.11 }
+      intranet: { ipv4_address: 10.213.2.11 }
     depends_on:
       router: { condition: service_healthy }
       dns:    { condition: service_started }
@@ -149,11 +149,11 @@ services:
     hostname: MON-${NCC:-N01}
     restart: unless-stopped
     cap_add: [NET_ADMIN]
-    environment: { GATEWAY: 172.20.2.254 }
+    environment: { GATEWAY: 10.213.2.254 }
     volumes: [ "kuma-data:/app/data" ]
     ports: [ "${MONITOR_PORT:-3001}:3001" ]
     networks:
-      intranet: { ipv4_address: 172.20.2.20 }
+      intranet: { ipv4_address: 10.213.2.20 }
     depends_on: { router: { condition: service_healthy } }
 
   pc-linux:                        # Client Linux
@@ -164,9 +164,9 @@ services:
     container_name: PC-L-${NCC:-N01}
     hostname: PC-L-${NCC:-N01}
     command: ["sleep", "infinity"]
-    environment: { GATEWAY: 172.20.2.254, DNS_SERVER: 172.20.2.53 }
+    environment: { GATEWAY: 10.213.2.254, DNS_SERVER: 10.213.2.53 }
     networks:
-      intranet: { ipv4_address: 172.20.2.50 }
+      intranet: { ipv4_address: 10.213.2.50 }
     depends_on: { router: { condition: service_healthy } }
 
   pc-windows:                      # Client Windows (EXPERIMENTAL, necessita KVM)
@@ -178,7 +178,7 @@ services:
     cap_add: [NET_ADMIN]
     ports: [ "8006:8006" ]         # visor web del Windows
     networks:
-      intranet: { ipv4_address: 172.20.2.60 }
+      intranet: { ipv4_address: 10.213.2.60 }
     stop_grace_period: 2m
 
   # ------------------------------------------------------------ DMZ
@@ -191,8 +191,8 @@ services:
     command: ["nginx", "-g", "daemon off;"]
     environment:
       NCC: ${NCC:-N01}
-      GATEWAY: 172.20.1.254
-      DNS_SERVER: 172.20.2.53
+      GATEWAY: 10.213.1.254
+      DNS_SERVER: 10.213.2.53
       DB_HOST: B-${NCC:-N01}
       DB_NAME: equipaments
       DB_USER: webapp
@@ -205,7 +205,7 @@ services:
       - ./services/web/nginx.conf:/etc/nginx/conf.d/p00.conf:ro
       - ./services/web/app:/srv/app:ro
     networks:
-      dmz: { ipv4_address: 172.20.1.10 }
+      dmz: { ipv4_address: 10.213.1.10 }
     depends_on:
       router: { condition: service_healthy }
       db:     { condition: service_healthy }
@@ -218,15 +218,15 @@ services:
     hostname: F-${NCC:-N01}
     command: ["vsftpd", "/etc/vsftpd.conf"]
     environment:
-      GATEWAY: 172.20.1.254
-      DNS_SERVER: 172.20.2.53
+      GATEWAY: 10.213.1.254
+      DNS_SERVER: 10.213.2.53
       PUBLIC_IP: ${PUBLIC_IP:-}
     volumes:
       - ftp-data:/home/bchecker/ftp
       - ./services/ftp/init.sh:/opt/init.sh:ro
       - ./services/ftp/vsftpd.conf.tpl:/opt/vsftpd.conf.tpl:ro
     networks:
-      dmz: { ipv4_address: 172.20.1.11 }
+      dmz: { ipv4_address: 10.213.1.11 }
     depends_on: { router: { condition: service_healthy } }
 
   ssh:                             # Servidor SSH / bastió
@@ -236,9 +236,9 @@ services:
     container_name: S-${NCC:-N01}
     hostname: S-${NCC:-N01}
     command: ["/usr/sbin/sshd", "-D", "-e"]
-    environment: { GATEWAY: 172.20.1.254, DNS_SERVER: 172.20.2.53, SSHD_FG: "1" }
+    environment: { GATEWAY: 10.213.1.254, DNS_SERVER: 10.213.2.53, SSHD_FG: "1" }
     volumes:
       - ./services/ssh/init.sh:/opt/init.sh:ro
     networks:
-      dmz: { ipv4_address: 172.20.1.12 }
+      dmz: { ipv4_address: 10.213.1.12 }
     depends_on: { router: { condition: service_healthy } }

@@ -29,6 +29,15 @@ def get_csv_bytes():
     sys.exit("[loader] ERROR: ni descàrrega ni fitxer local. Copia el CSV a ./data/equipaments.csv")
 
 
+def decode_text(raw):
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return raw.decode("utf-16", errors="replace")
+    if b"\x00" in raw[:4096]:
+        enc = "utf-16-le" if raw[1:2] == b"\x00" else "utf-16-be"
+        return raw.decode(enc, errors="replace")
+    return raw.decode("utf-8-sig", errors="replace")
+
+
 def clean(name, used):
     n = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
     n = re.sub(r"[^a-z0-9]+", "_", n.lower()).strip("_") or "col"
@@ -56,7 +65,7 @@ def connect():
 
 
 def main():
-    text = get_csv_bytes().decode("utf-8-sig", errors="replace")
+    text = decode_text(get_csv_bytes()).replace("\x00", "")
     try:
         dialect = csv.Sniffer().sniff(text[:8192], delimiters=",;\t|")
     except csv.Error:
