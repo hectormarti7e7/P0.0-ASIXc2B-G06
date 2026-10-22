@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1030" viewBox="0 0 1300 1030" font-family="DejaVu Sans, Arial, Helvetica, sans-serif">
+<defs>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2e7d32"/></marker>
+<marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker>
+</defs>
+<rect width="1300" height="1030" fill="#ffffff"/>
+<text x="30" y="38" font-size="24" font-weight="bold" fill="#1a1a1a">P0.0 · Arquitectura de la infraestructura (equip N06)</text>
+<text x="30" y="62" font-size="13" fill="#555">Cada servei és un contenidor Docker. El router és un contenidor Linux amb iptables connectat a les tres xarxes i tot el trànsit entre xarxes hi passa.</text>
+<g transform="translate(0,90)">
+<rect x="520" y="0" width="260" height="52" rx="8" fill="#f5f5f5" stroke="#444444" stroke-width="1.5"/>
+<text x="650.0" y="22.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">Internet / host</text>
+<text x="650.0" y="41.0" text-anchor="middle" font-size="12" fill="#444">clients externs</text>
+<line x1="650" y1="52" x2="650" y2="92" stroke="#333" stroke-width="2" marker-end="url(#ak)"/>
+<text x="662" y="77" font-size="12.5" font-weight="bold" fill="#333">80, 443, 21, 30000-30009, 2222</text>
+<rect x="420" y="92" width="460" height="80" rx="10" fill="#efefef" stroke="#777" stroke-width="1.5"/>
+<text x="650" y="126" text-anchor="middle" font-size="16" font-weight="bold" fill="#555">Xarxa NAT 10.213.3.0/24</text>
+<text x="650" y="148" text-anchor="middle" font-size="12" fill="#555">sortida a Internet · entrada per port-forwarding</text>
+<line x1="650" y1="172" x2="650" y2="222" stroke="#333" stroke-width="2"/>
+<text x="660" y="202" font-size="12" font-weight="bold" fill="#333">10.213.3.2</text>
+<rect x="440" y="222" width="420" height="140" rx="10" fill="#fff" stroke="#222" stroke-width="2.5"/>
+<text x="650" y="254" text-anchor="middle" font-size="18" font-weight="bold" fill="#111">R-N06 · Router + firewall</text>
+<text x="650" y="284" text-anchor="middle" font-size="12" fill="#333">NAT 10.213.3.2 · DMZ 10.213.1.254 · Intranet 10.213.2.254</text>
+<text x="650" y="306" text-anchor="middle" font-size="12" fill="#333">ip_forward · iptables · FORWARD per defecte DROP</text>
+<text x="650" y="328" text-anchor="middle" font-size="12" fill="#333">DNAT cap a la DMZ · MASQUERADE cap a NAT</text>
+<polyline points="440,292 230,292 230,400" fill="none" stroke="#333" stroke-width="2"/>
+<text x="240" y="350" font-size="12" font-weight="bold" fill="#333">10.213.1.254</text>
+<polyline points="860,292 1070,292 1070,400" fill="none" stroke="#333" stroke-width="2"/>
+<text x="1080" y="350" font-size="12" font-weight="bold" fill="#333">10.213.2.254</text>
+<rect x="30" y="400" width="400" height="520" rx="12" fill="#fff4e0" stroke="#c77700" stroke-width="2"/>
+<text x="50" y="428" font-size="16" font-weight="bold" fill="#b36b00">DMZ 10.213.1.0/24</text>
+<rect x="50" y="445" width="360" height="70" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="230.0" y="476.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">W-N06 · Web (nginx + Flask)</text>
+<text x="230.0" y="495.0" text-anchor="middle" font-size="12" fill="#444">10.213.1.10 · 80/443 (HTTPS autosignat)</text>
+<rect x="50" y="525" width="360" height="70" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="230.0" y="556.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">F-N06 · FTP (vsftpd)</text>
+<text x="230.0" y="575.0" text-anchor="middle" font-size="12" fill="#444">10.213.1.11 · 21 + passiu 30000-30009</text>
+<rect x="50" y="605" width="360" height="70" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="230.0" y="636.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">S-N06 · SSH (bastió)</text>
+<text x="230.0" y="655.0" text-anchor="middle" font-size="12" fill="#444">10.213.1.12 · extern 2222 → 22</text>
+<rect x="50" y="695" width="360" height="200" rx="8" fill="none" stroke="#c77700" stroke-width="1" stroke-dasharray="5,4"/>
+<text x="66" y="722" font-size="13" font-weight="bold" fill="#8a5300">Serveis exposats a Internet</text>
+<text x="66" y="752" font-size="12.5" fill="#5a3a00">Només poden iniciar connexions cap a:</text>
+<text x="66" y="776" font-size="12.5" fill="#5a3a00">·  BBDD (TCP 3306)</text>
+<text x="66" y="800" font-size="12.5" fill="#5a3a00">·  DNS (UDP/TCP 53)</text>
+<text x="66" y="824" font-size="12.5" fill="#5a3a00">·  Internet (actualitzacions)</text>
+<text x="66" y="848" font-size="12.5" fill="#5a3a00">Cap accés a la resta de la intranet.</text>
+<rect x="870" y="400" width="400" height="520" rx="12" fill="#e8f1fc" stroke="#2a64a8" stroke-width="2"/>
+<text x="890" y="428" font-size="16" font-weight="bold" fill="#1f4f8a">Intranet 10.213.2.0/24</text>
+<rect x="890" y="445" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="1070.0" y="473.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">B-N06 · BBDD (MySQL 8)</text>
+<text x="1070.0" y="492.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.10 · base equipaments</text>
+<rect x="890" y="519" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="1070.0" y="547.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">DNS-N06 · DNS (dnsmasq)</text>
+<text x="1070.0" y="566.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.53 · resol R-N06, R i els equips</text>
+<rect x="890" y="593" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="1070.0" y="621.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">DHCP-N06 · DHCP (dnsmasq)</text>
+<text x="1070.0" y="640.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.67 · rang .100 a .200</text>
+<rect x="890" y="667" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="1070.0" y="695.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">MON-N06 · Monitor (Uptime Kuma)</text>
+<text x="1070.0" y="714.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.20 · sondes a W, F, B i S</text>
+<rect x="890" y="741" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="1070.0" y="769.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">PC-L-N06 · Client Linux</text>
+<text x="1070.0" y="788.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.50</text>
+<rect x="890" y="815" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+<text x="1070.0" y="843.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">PC-W-N06 · Client Windows</text>
+<text x="1070.0" y="862.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.60 · perfil experimental o VM</text>
+<polyline points="410,480 560,480 560,364" fill="none" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<text x="438" y="498" font-size="12" font-weight="bold" fill="#2e7d32">TCP 3306 · 53</text>
+<line x1="740" y1="362" x2="740" y2="551" stroke="#2e7d32" stroke-width="2.5"/>
+<line x1="740" y1="477" x2="886" y2="477" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<line x1="740" y1="551" x2="886" y2="551" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<text x="750" y="468" font-size="12" font-weight="bold" fill="#2e7d32">→ B:3306</text>
+<text x="750" y="542" font-size="12" font-weight="bold" fill="#2e7d32">→ DNS:53</text>
+<line x1="410" y1="640" x2="600" y2="640" stroke="#c62828" stroke-width="2.5" stroke-dasharray="7,5"/>
+<line x1="600" y1="630" x2="620" y2="650" stroke="#c62828" stroke-width="3.5"/>
+<line x1="620" y1="630" x2="600" y2="650" stroke="#c62828" stroke-width="3.5"/>
+<text x="440" y="668" font-size="12" fill="#c62828">DMZ → resta d'Intranet:</text>
+<text x="590" y="668" font-size="12" font-weight="bold" fill="#c62828">BLOQUEJAT</text>
+<rect x="450" y="700" width="400" height="220" rx="10" fill="#fafafa" stroke="#999" stroke-width="1.2"/>
+<text x="470" y="728" font-size="13.5" font-weight="bold" fill="#222">Política del firewall (FORWARD DROP)</text>
+<circle cx="472" cy="752" r="5" fill="#2e7d32"/>
+<text x="486" y="756" font-size="12.5" fill="#222">Internet → W: 80, 443 (DNAT)</text>
+<circle cx="472" cy="774" r="5" fill="#2e7d32"/>
+<text x="486" y="778" font-size="12.5" fill="#222">Internet → F: 21 + passiu 30000-30009</text>
+<circle cx="472" cy="796" r="5" fill="#2e7d32"/>
+<text x="486" y="800" font-size="12.5" fill="#222">Internet → S: 2222 (→ 22)</text>
+<circle cx="472" cy="818" r="5" fill="#2e7d32"/>
+<text x="486" y="822" font-size="12.5" fill="#222">Intranet → DMZ i Internet: tot</text>
+<circle cx="472" cy="840" r="5" fill="#2e7d32"/>
+<text x="486" y="844" font-size="12.5" fill="#222">DMZ → B: TCP 3306 · DMZ → DNS: UDP/TCP 53</text>
+<circle cx="472" cy="862" r="5" fill="#2e7d32"/>
+<text x="486" y="866" font-size="12.5" fill="#222">DMZ → Internet: tot (actualitzacions)</text>
+<circle cx="472" cy="884" r="5" fill="#c62828"/>
+<text x="486" y="888" font-size="12.5" fill="#222">DMZ → resta d'Intranet: bloquejat</text>
+</g>
+</svg>
