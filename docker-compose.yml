@@ -1,0 +1,49 @@
+# P0.0 - Desplegament d'infraestructura amb Docker
+# Cada servei és un contenidor. Aquesta és la base: les 3 xarxes, el router i un client.
+# Variables a .env (copia .env.example). NCC = identificador de l'equip (N06).
+name: p00-${NCC:-N06}
+
+x-base: &base
+  restart: unless-stopped
+  cap_add: [NET_ADMIN]
+
+# Xarxes de la pràctica (adreçament fix)
+networks:
+  dmz:                              # serveis exposats a Internet
+    ipam:
+      config: [{ subnet: 10.213.1.0/24, gateway: 10.213.1.1 }]
+  intranet:                         # serveis interns i clients
+    ipam:
+      config: [{ subnet: 10.213.2.0/24, gateway: 10.213.2.1 }]
+  nat:                              # sortida a Internet
+    ipam:
+      config: [{ subnet: 10.213.3.0/24, gateway: 10.213.3.1 }]
+
+services:
+  # Router: únic contenidor connectat a les tres xarxes. Les regles de
+  # firewall i NAT s'afegeixen en la tasca del router.
+  router:
+    <<: *base
+    build: { context: ./images/base }
+    image: p00-base
+    container_name: R-${NCC:-N06}
+    hostname: R-${NCC:-N06}
+    command: ["sleep", "infinity"]
+    sysctls: { net.ipv4.ip_forward: "1" }
+    networks:
+      nat:      { ipv4_address: 10.213.3.2 }
+      dmz:      { ipv4_address: 10.213.1.254 }
+      intranet: { ipv4_address: 10.213.2.254 }
+
+  # Client Linux: primer equip sobre la imatge base; surt pel router.
+  pc-linux:
+    <<: *base
+    build: { context: ./images/base }
+    image: p00-base
+    container_name: PC-L-${NCC:-N06}
+    hostname: PC-L-${NCC:-N06}
+    command: ["sleep", "infinity"]
+    environment: { GATEWAY: 10.213.2.254 }
+    networks:
+      intranet: { ipv4_address: 10.213.2.50 }
+    depends_on: [router]
