@@ -19,6 +19,9 @@ networks:
     ipam:
       config: [{ subnet: 10.213.3.0/24, gateway: 10.213.3.1 }]
 
+volumes:
+  db-data:                          # dades de MySQL (persistents)
+
 services:
   # Router: únic contenidor connectat a les tres xarxes. Fa el reenviament,
   # el NAT cap a Internet i el firewall (services/router/init.sh).
@@ -58,3 +61,30 @@ services:
     networks:
       intranet: { ipv4_address: 10.213.2.50 }
     depends_on: { router: { condition: service_healthy } }
+
+  # Servidor de base de dades (intranet). La càrrega del CSV és una tasca a part.
+  db:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "mysql-server mysql-client" } }
+    image: p00-db
+    container_name: B-${NCC:-N06}
+    hostname: B-${NCC:-N06}
+    command: ["mysqld", "--user=mysql", "--bind-address=0.0.0.0", "--skip-name-resolve"]
+    environment:
+      GATEWAY: 10.213.2.254
+      DB_NAME: equipaments
+      DB_USER: bchecker
+      DB_PASS: bchecker121
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./services/db/init.sh:/opt/init.sh:ro
+      - ./services/db/init.sql:/opt/init.sql:ro
+    networks:
+      intranet: { ipv4_address: 10.213.2.10 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h127.0.0.1 -ubchecker -pbchecker121 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 60s
