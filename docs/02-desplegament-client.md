@@ -87,6 +87,23 @@ El router (`R-N06`) és l'únic contenidor connectat a les tres xarxes (10.213.3
 
 S'ha triat el rang 10.213.0.0/16 perquè el 172.20.0.0/16 xocava amb una xarxa Docker ja existent al servidor.
 
+### 6.1 Client Linux
+El client `PC-L-N06` es construeix sobre la imatge base amb l'argument `PKGS`, que hi afegeix les eines de prova: `nmap`, `mysql-client`, `ftp` i `traceroute`. Surt a Internet pel router.
+
+```bash
+docker compose up -d --build pc-linux
+docker exec PC-L-N06 sh -c 'for c in nmap mysql ftp traceroute; do printf "%s: " $c; which $c || echo NO; done'
+docker exec PC-L-N06 ping -c 2 10.213.2.254
+docker exec PC-L-N06 traceroute -n 1.1.1.1 | head -4
+docker exec PC-L-N06 ping -c 2 1.1.1.1
+```
+
+Resultat esperat: les quatre eines amb la seva ruta, ping al router sense pèrdues i `traceroute` amb el router (`10.213.2.254`) com a primer salt i el gateway NAT (`10.213.3.1`) com a segon.
+
+![Client Linux: eines i sortida a Internet pel router](img/evidencia-client-linux.png)
+
+*Figura 2. Eines del client i sortida a Internet pel router.*
+
 ## 7. Comprovació
 En aquesta fase es valida el disseny sense desplegar serveis:
 
