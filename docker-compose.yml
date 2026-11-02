@@ -47,8 +47,10 @@ services:
   # Client Linux: primer equip sobre la imatge base; surt pel router.
   pc-linux:
     <<: *base
-    build: { context: ./images/base }
-    image: p00-base
+    build:
+      context: ./images/base
+      args: { PKGS: "nmap mysql-client ftp traceroute" }
+    image: p00-client-linux
     container_name: PC-L-${NCC:-N06}
     hostname: PC-L-${NCC:-N06}
     command: ["sleep", "infinity"]
