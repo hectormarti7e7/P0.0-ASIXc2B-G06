@@ -26,7 +26,7 @@ cost, mida de la comunitat i encaix amb els requisits de l'enunciat.
 L'última fila és coneixement general, no ve de la font [1].
 
 **Conclusió.** Usem contenidors per a tots els serveis. Un contenidor per servei és reproduïble
-(`./deploy.sh up`) i la configuració queda al repositori. La pròpia documentació de Docker indica que és habitual
+(`docker compose up -d --build`) i la configuració queda al repositori. La pròpia documentació de Docker indica que és habitual
 combinar-los: una VM que executa un runtime de contenidors [1]. Aplica al nostre cas: el client Windows no es pot
 executar com a contenidor Linux, així que serà una màquina virtual.
 
