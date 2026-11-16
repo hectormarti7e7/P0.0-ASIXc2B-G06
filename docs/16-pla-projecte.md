@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.0 · 15/11/2026 · Sprint 1 |
+| **Versió** | 1.1 · 16/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -94,15 +94,16 @@ L'enunciat fixa 5 hores setmanals per persona, és a dir, 10 hores per sprint.
 | Una actualització de MySQL a la 8.4 desactiva `mysql_native_password` | Baixa | Mitjà | Fixar MySQL 8.0 i revisar els usuaris abans d'actualitzar ([estudi previ 09](09-estudi-previ.md), apartat 9.3) |
 | Credencials conegudes (`bchecker` / `bchecker121`, imposades per l'enunciat) | Alta | Baix | S'usen només en aquest entorn de pràctica, no es reutilitzen en cap altre sistema i la BBDD només és accessible des de la intranet i, pel port 3306, des de la DMZ |
 | El CSV d'equipaments pot no estar en UTF-8 | Mitjana | Mitjà | Comprovar la codificació abans de carregar-lo i documentar la càrrega |
-| Conflictes de Git entre els dos integrants | Mitjana | Baix | Una branca per persona i Pull Request cap a `main` ([control de versions](14-control-versions.md)) |
+| Conflictes de Git entre els dos integrants | Mitjana | Baix | Una branca de vida curta per cada tasca de ProofHub i Pull Request cap a `main` ([control de versions](14-control-versions.md)) |
 
 ## 7. Seguiment
 - **ProofHub:** cada tasca té responsable, data de venciment i criteri de «feta»; s'hi registren les hores treballades.
 - **Diari de treball:** a cada sessió s'hi afegeix una nota amb el que s'ha fet i el que falla.
-- **GitHub:** els canvis passen per Pull Request i cada commit recull una sola part del treball.
+- **GitHub:** cada tasca de ProofHub té la seva branca i el seu Pull Request, i cada commit recull una sola part del treball.
 - **Etiquetes:** el tancament de cada sprint es marca amb una etiqueta de Git (`sprint1`, `sprint2`...).
 
 ## 8. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 15/11/2026 | Primera versió: fases, tasques, recursos, dedicació, riscos i seguiment |
+| 1.1 | 16/11/2026 | Una branca per tasca de ProofHub en lloc d'una per persona |
