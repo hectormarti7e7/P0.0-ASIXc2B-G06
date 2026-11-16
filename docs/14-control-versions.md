@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.0 · 15/11/2026 · Sprint 1 |
+| **Versió** | 1.1 · 16/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -90,10 +90,12 @@ git push -u origin <branca>
 
 ## 5. Flux de treball amb branques
 - No es treballa directament a `main`.
-- Cada integrant treballa en una branca amb el nom `sprintN/nom`, per exemple `sprint1/josep` o `sprint1/hector`. Per a feines concretes es pot usar un prefix com `chore/`.
-- Per integrar els canvis s'obre un **Pull Request** cap a `main` amb la [plantilla del repositori](../.github/pull_request_template.md). L'altre integrant el revisa i, un cop aprovat, es fusiona.
-- Després de la fusió, cadascú actualitza el seu `main` local amb `git pull`.
-- Les branques antigues no s'esborren: es conserven amb el prefix `archiu/` (per exemple `archiu/sprint1-josep-vell`).
+- **Una branca per cada tasca de ProofHub.** Les branques són de vida curta: es creen, es treballa, s'obre el Pull Request, es fusionen i s'esborren. El nom porta el sprint com a prefix i un nom curt de la tasca, per exemple `sprint2/bbdd-mysql`, `sprint2/carrega-csv`, `sprint2/ssh` o `sprint2/git-rames-per-tasca`. El tipus de canvi (`feat`, `docs`...) va als missatges dels commits, perquè una mateixa branca pot tenir-ne de diversos.
+- Així cada Pull Request explica una sola cosa i es pot relacionar directament amb la seva tasca de ProofHub, que s'indica a la [plantilla del repositori](../.github/pull_request_template.md).
+- Per integrar els canvis s'obre un **Pull Request** cap a `main`. L'altre integrant el revisa i, un cop aprovat, es fusiona.
+- Després de la fusió, la branca s'esborra (`git branch -d <branca>` i `git push origin --delete <branca>`) i cadascú actualitza el seu `main` local amb `git pull`. Els commits es conserven a `main`.
+- Les branques que no arriben a fusionar-se no s'esborren: es conserven amb el prefix `archiu/` (per exemple `archiu/sprint1-josep-vell`).
+- Al sprint 1 es treballava amb una branca per integrant i sprint (`sprint1/josep`, `sprint1/hector`). Des del sprint 2 s'usa una branca per tasca; les branques del sprint 1 ja estan fusionades i es mantenen com a referència.
 - El tancament d'un sprint es marca amb una etiqueta:
 
 ```bash
@@ -146,3 +148,4 @@ Cada commit recull una sola part lògica del canvi, de manera que l'historial es
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 15/11/2026 | Primera versió: clau SSH, comandes, flux de branques, pujada a producció i resolució de problemes |
+| 1.1 | 16/11/2026 | Les branques passen a ser una per tasca de ProofHub, de vida curta |
