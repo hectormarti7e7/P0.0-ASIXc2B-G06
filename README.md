@@ -75,4 +75,4 @@ L'[índex de la documentació](docs/README.md) llista tots els documents. Els m�
 - [Pla del projecte](docs/16-pla-projecte.md)
 
 ## Com col·laborem
-`main` és la branca estable i s'hi arriba per Pull Request. Cada tasca de ProofHub té la seva branca de vida curta (per exemple `feat/bbdd-mysql`). Les regles i les comandes són a la [guia de control de versions](docs/14-control-versions.md).
+`main` és la branca estable i s'hi arriba per Pull Request. Cada tasca de ProofHub té la seva branca de vida curta (per exemple `sprint2/bbdd-mysql`). Les regles i les comandes són a la [guia de control de versions](docs/14-control-versions.md).
