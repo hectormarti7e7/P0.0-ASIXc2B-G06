@@ -13,6 +13,9 @@ echo "[router] DMZ=$IF_DMZ INTRANET=$IF_INT NAT=$IF_NAT"
 
 # Sortida a Internet pel gateway de la xarxa NAT
 ip route replace default via 10.213.3.1
+# Clients d'Isard (xarxa itb 6): hi arriben a través de l'equip dels serveis, que és
+# l'adreça .1 de la intranet (vegeu scripts/xarxa-clients.sh)
+ip route replace 192.168.50.0/24 via 10.213.2.1
 
 # --- Política per defecte ---
 iptables -F; iptables -t nat -F; iptables -X
