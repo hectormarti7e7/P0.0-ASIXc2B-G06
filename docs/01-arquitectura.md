@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autors** | Josep Pérez, Hèctor Martí |
-| **Versió** | 1.2 · 17/11/2026 · Sprint 2 |
+| **Versió** | 1.3 · 18/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -40,22 +40,27 @@ El router és un contenidor Linux amb `ip_forward` i `iptables`, connectat a tre
 | DNS | DNS-N06 | dnsmasq | Intranet |
 | DHCP | DHCP-N06 | dnsmasq | Intranet |
 | Monitor de xarxa | MON-N06 | Uptime Kuma | Intranet |
-| Client Linux | PC-L-N06 | Ubuntu (màquina virtual a Isard) | Intranet, per itb 6 |
-| Client Windows | PC-W-N06 | Windows (màquina virtual a Isard) | Intranet, per itb 6 |
+| Client Linux | PC-L-N06 | Ubuntu (màquina virtual a Isard) | itb 6 |
+| Client Windows | PC-W-N06 | Windows (màquina virtual a Isard) | itb 6 |
 
 ## 4. Xarxes i segmentació
 | Xarxa | Subxarxa | Funció |
 |---|---|---|
 | NAT | 10.213.3.0/24 | Sortida a Internet i entrada pel port-forwarding del router |
 | DMZ | 10.213.1.0/24 | Serveis exposats a Internet (web, FTP i SSH) |
-| Intranet | 10.213.2.0/24 | Serveis interns (BBDD, DNS, DHCP i monitor) i clients, que hi arriben per itb 6 |
+| Intranet | 10.213.2.0/24 | Serveis interns (BBDD, DNS, DHCP i monitor) |
+| itb 6 | 192.168.50.0/24 | Xarxa del laboratori d'Isard on són els clients i l'equip dels serveis |
 
 ### 4.1 Connexió dels clients (itb 6)
-Els clients no són contenidors: són dues màquines virtuals al laboratori d'Isard, cadascuna amb una targeta a la xarxa `itb 6`. L'equip on s'executa Docker té també una targeta a `itb 6` (a l'equip de proves, `enp3s0`), i la xarxa `intranet` s'hi connecta amb el controlador `ipvlan` en mode L2. Així els clients i els contenidors comparteixen la xarxa 10.213.2.0/24 i el router (10.213.2.254) és el seu *gateway*.
+Els clients no són contenidors: són dues màquines virtuals al laboratori d'Isard, cadascuna amb una targeta a la xarxa `itb 6` (192.168.50.0/24). L'equip on s'executa Docker també hi té una targeta (`enp3s0`, 192.168.50.22) i fa de *gateway* entre `itb 6` i la intranet:
 
-S'usa `ipvlan` i no un pont (*bridge*) perquè, amb un pont, les respostes dels contenidors (que surten amb la seva pròpia MAC) no arribaven als clients, probablement per un filtre de la xarxa virtual d'Isard. Amb `ipvlan` tots els contenidors surten amb la MAC de la targeta de l'equip. La targeta es tria amb la variable `INTRANET_PARENT` del fitxer `.env`.
+- Els clients tenen una ruta `10.213.2.0/24 via 192.168.50.22`.
+- L'equip dels serveis reenvia el trànsit entre `enp3s0` i el pont de la intranet (`br-intranet`) amb el script `scripts/xarxa-clients.sh`.
+- Les respostes tornen pel router (`R-N06`), que té una ruta `192.168.50.0/24 via 10.213.2.1` (l'equip dels serveis a la intranet).
 
-La targeta d'`itb 6` té una MTU de 8946, i els ponts de Docker usen 1500: els clients han de configurar la MTU a 1500. El procediment complet és al [document dels clients](04-clients-isard.md).
+Es va provar abans de connectar la targeta d'`itb 6` directament a la intranet (amb un pont i amb `ipvlan`), però no funciona: un pont fa que els contenidors surtin amb la seva pròpia MAC, que la xarxa virtual d'Isard descarta, i amb `ipvlan` el trànsit que ha de passar pel router surt per la targeta en comptes d'arribar al router (la web no hauria pogut arribar a la BBDD). Amb el reenviament per IP, la intranet continua sent un pont normal i tot el trànsit entre xarxes passa pel router.
+
+Docker 28 o superior bloqueja per defecte l'accés directe des de fora a les IP dels contenidors; per això la xarxa `intranet` usa el mode de pasarel·la `nat-unprotected` (només aquesta xarxa). El procediment complet és al [document dels clients](04-clients-isard.md).
 
 ## 5. Adreçament IP
 Totes les adreces són fixes i es defineixen a `docker-compose.yml`. En cada xarxa, l'adreça `.1` la reserva Docker com a *gateway* intern i no l'usa cap equip de la pràctica.
@@ -70,8 +75,8 @@ Totes les adreces són fixes i es defineixen a `docker-compose.yml`. En cada xar
 | Càrrega de dades (temporal) | LOADER-N06 | Intranet | 10.213.2.11 |
 | Monitor de xarxa | MON-N06 | Intranet | 10.213.2.20 |
 | DNS | DNS-N06 | Intranet | 10.213.2.53 |
-| Client Linux | PC-L-N06 | Intranet | 10.213.2.50 |
-| Client Windows | PC-W-N06 | Intranet | 10.213.2.60 |
+| Client Linux | PC-L-N06 | itb 6 | 192.168.50.50 (ruta cap a la intranet per 192.168.50.22) |
+| Client Windows | PC-W-N06 | itb 6 | 192.168.50.60 (ruta cap a la intranet per 192.168.50.22) |
 | DHCP | DHCP-N06 | Intranet | 10.213.2.67 (reparteix el rang 10.213.2.100 a 10.213.2.200) |
 
 El *gateway* per defecte dels equips de la DMZ és `10.213.1.254` i el dels equips de la intranet és `10.213.2.254`, de manera que tot el trànsit entre xarxes passa pel router.
@@ -120,12 +125,14 @@ La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`)
 ## 8. Limitacions conegudes
 - Els contenidors comparteixen el nucli del sistema amfitrió, de manera que l'aïllament és més feble que amb màquines virtuals.
 - El client Windows no pot ser un contenidor Linux i s'executa com a màquina virtual.
-- Amb `ipvlan`, l'equip on corre Docker no pot arribar directament a les adreçes 10.213.2.x (només amb `docker exec`); els clients sí.
-- La xarxa `intranet` necessita que l'equip tingui una targeta connectada a `itb 6`. En un altre entorn cal indicar la targeta a `INTRANET_PARENT`.
+- Els clients no estan a la intranet sinó a `itb 6`: arriben als serveis a través de l'equip dels serveis, i el DHCP de la intranet no els pot repartir adreces (la difusió no travessa l'enrutament).
+- Les regles de reenviament de l'equip dels serveis (`scripts/xarxa-clients.sh`) no sobreviuen a un reinici: cal tornar a executar el script després de `docker compose up`.
+- Les adreces 192.168.50.x són les del laboratori d'Isard; en un altre entorn cal canviar-les al script, al router i als clients.
 
 ## 9. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 22/10/2026 | Primera versió: components, xarxes i diagrama |
 | 1.1 | 26/10/2026 | Adreçament IP i política del firewall (Hèctor Martí) |
-| 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard connectades per itb 6 (`ipvlan`) |
+| 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard connectades per itb 6 |
+| 1.3 | 18/11/2026 | Els clients arriben a la intranet per enrutament a través de l'equip dels serveis (en lloc d'`ipvlan`) |
