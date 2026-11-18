@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.1 · 16/11/2026 · Sprint 2 |
+| **Versió** | 1.2 · 17/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -35,7 +35,7 @@ Aquest document defineix els criteris de rendiment i de disponibilitat de la inf
 | D2 | Temps de recuperació després d'aturar un contenidor amb `docker kill` | 60 s o menys | Tots els serveis |
 | D3 | Arrencada del router fins a l'estat `healthy` | 30 s o menys | Router |
 | D4 | Arrencada de la BBDD fins a l'estat `healthy`, en la primera arrencada | 120 s o menys | BBDD |
-| P1 | Latència entre contenidors d'una mateixa xarxa | 5 ms o menys de mitjana i 0 % de paquets perduts | Xarxes |
+| P1 | Latència entre equips d'una mateixa xarxa | 5 ms o menys de mitjana i 0 % de paquets perduts | Xarxes |
 | P2 | Sortida a Internet des de la intranet pel router | Ruta per defecte pel router (10.213.2.254) i 0 % de paquets perduts | Router i clients |
 | P3 | Resposta de la web amb 10 usuaris concurrents | 0 peticions fallides i temps mitjà de 500 ms o menys | Web |
 | P4 | Consulta de recompte a la taula carregada | 1 s o menys | BBDD |
@@ -62,10 +62,11 @@ docker events --since 5m --until 0s --filter container=R-N06 --filter event=kill
 Sondes d'Uptime Kuma per IP, una per servei i amb interval de 60 s. La disponibilitat és el percentatge que mostra el monitor a la finestra de mesura.
 
 ### Xarxa (P1, P2)
+Es mesuren des del client Linux (màquina virtual d'Isard). Per a P2 cal que la ruta per defecte passi pel router ([document dels clients](04-clients-isard.md), apartat 5.2).
 ```bash
-docker exec PC-L-N06 ping -c 20 10.213.2.254
-docker exec PC-L-N06 ping -c 20 1.1.1.1
-docker exec PC-L-N06 ip route show default
+ping -c 20 10.213.2.254
+ping -c 20 1.1.1.1
+ip route show default
 ```
 Ha de mostrar `default via 10.213.2.254` i cap paquet perdut.
 
@@ -102,3 +103,4 @@ Es completa amb cada mesura feta.
 |---|---|---|
 | 1.0 | 15/11/2026 | Primera versió: criteris, mètode de mesura i estat d'implementació |
 | 1.1 | 16/11/2026 | `healthcheck` de la BBDD i primera mesura (D4) |
+| 1.2 | 17/11/2026 | Les mesures de xarxa es fan des del client Linux, que ara és una màquina virtual |

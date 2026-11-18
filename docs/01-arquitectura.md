@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autors** | Josep Pérez, Hèctor Martí |
-| **Versió** | 1.1 · 26/10/2026 · Sprint 1 |
+| **Versió** | 1.2 · 17/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -20,7 +20,7 @@
 9. [Historial de versions](#9-historial-de-versions)
 
 ## 1. Objectiu i abast
-Aquest document descriu l'arquitectura de la infraestructura multicapa de la pràctica P0.0: quins components hi ha, com es connecten i per què s'han dissenyat així. Cada servei s'executa en un **contenidor Docker** en lloc d'una màquina virtual per servei. La justificació tecnològica és a l'[estudi previ](09-estudi-previ.md).
+Aquest document descriu l'arquitectura de la infraestructura multicapa de la pràctica P0.0: quins components hi ha, com es connecten i per què s'han dissenyat així. Cada servei s'executa en un **contenidor Docker** en lloc d'una màquina virtual per servei. Els dos clients (Linux i Windows) són l'excepció: són màquines virtuals al laboratori d'Isard. La justificació tecnològica és a l'[estudi previ](09-estudi-previ.md).
 
 ## 2. Visió general
 El router és un contenidor Linux amb `ip_forward` i `iptables`, connectat a tres xarxes (DMZ, Intranet i NAT). Tot el trànsit entre xarxes passa pel router.
@@ -40,15 +40,22 @@ El router és un contenidor Linux amb `ip_forward` i `iptables`, connectat a tre
 | DNS | DNS-N06 | dnsmasq | Intranet |
 | DHCP | DHCP-N06 | dnsmasq | Intranet |
 | Monitor de xarxa | MON-N06 | Uptime Kuma | Intranet |
-| Client Linux | PC-L-N06 | Ubuntu | Intranet |
-| Client Windows | PC-W-N06 | Windows (màquina virtual) | Intranet |
+| Client Linux | PC-L-N06 | Ubuntu (màquina virtual a Isard) | Intranet, per itb 6 |
+| Client Windows | PC-W-N06 | Windows (màquina virtual a Isard) | Intranet, per itb 6 |
 
 ## 4. Xarxes i segmentació
 | Xarxa | Subxarxa | Funció |
 |---|---|---|
 | NAT | 10.213.3.0/24 | Sortida a Internet i entrada pel port-forwarding del router |
 | DMZ | 10.213.1.0/24 | Serveis exposats a Internet (web, FTP i SSH) |
-| Intranet | 10.213.2.0/24 | Serveis interns (BBDD, DNS, DHCP, monitor i clients) |
+| Intranet | 10.213.2.0/24 | Serveis interns (BBDD, DNS, DHCP i monitor) i clients, que hi arriben per itb 6 |
+
+### 4.1 Connexió dels clients (itb 6)
+Els clients no són contenidors: són dues màquines virtuals al laboratori d'Isard, cadascuna amb una targeta a la xarxa `itb 6`. L'equip on s'executa Docker té també una targeta a `itb 6` (a l'equip de proves, `enp3s0`), i la xarxa `intranet` s'hi connecta amb el controlador `ipvlan` en mode L2. Així els clients i els contenidors comparteixen la xarxa 10.213.2.0/24 i el router (10.213.2.254) és el seu *gateway*.
+
+S'usa `ipvlan` i no un pont (*bridge*) perquè, amb un pont, les respostes dels contenidors (que surten amb la seva pròpia MAC) no arribaven als clients, probablement per un filtre de la xarxa virtual d'Isard. Amb `ipvlan` tots els contenidors surten amb la MAC de la targeta de l'equip. La targeta es tria amb la variable `INTRANET_PARENT` del fitxer `.env`.
+
+La targeta d'`itb 6` té una MTU de 8946, i els ponts de Docker usen 1500: els clients han de configurar la MTU a 1500. El procediment complet és al [document dels clients](04-clients-isard.md).
 
 ## 5. Adreçament IP
 Totes les adreces són fixes i es defineixen a `docker-compose.yml`. En cada xarxa, l'adreça `.1` la reserva Docker com a *gateway* intern i no l'usa cap equip de la pràctica.
@@ -113,9 +120,12 @@ La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`)
 ## 8. Limitacions conegudes
 - Els contenidors comparteixen el nucli del sistema amfitrió, de manera que l'aïllament és més feble que amb màquines virtuals.
 - El client Windows no pot ser un contenidor Linux i s'executa com a màquina virtual.
+- Amb `ipvlan`, l'equip on corre Docker no pot arribar directament a les adreçes 10.213.2.x (només amb `docker exec`); els clients sí.
+- La xarxa `intranet` necessita que l'equip tingui una targeta connectada a `itb 6`. En un altre entorn cal indicar la targeta a `INTRANET_PARENT`.
 
 ## 9. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 22/10/2026 | Primera versió: components, xarxes i diagrama |
 | 1.1 | 26/10/2026 | Adreçament IP i política del firewall (Hèctor Martí) |
+| 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard connectades per itb 6 (`ipvlan`) |

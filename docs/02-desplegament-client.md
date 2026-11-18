@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.0 · 22/10/2026 · Sprint 1 |
+| **Versió** | 1.1 · 17/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -26,6 +26,7 @@ Aquest manual explica com preparar l'entorn i validar la base de la infraestruct
 - Linux (provat a Ubuntu 24) amb **Docker Engine 24 o superior** i **Docker Compose v2**.
 - **Git**, per descarregar el projecte.
 - Accés a Internet, per baixar la imatge `ubuntu:22.04` i els paquets.
+- Una targeta de l'equip connectada a la xarxa `itb 6` d'Isard, per on arriben els clients (vegeu el [document dels clients](04-clients-isard.md)).
 
 ## 3. Preparació de Docker
 Si Docker no està instal·lat, es fa amb el repositori oficial:
@@ -54,7 +55,7 @@ cd P0.0-ASIXc2B-G06
 cp .env.example .env
 ```
 
-El fitxer `.env` conté l'identificador de l'equip (`NCC=N06`), que dona nom als contenidors (`R-N06`, `PC-L-N06`...). El fitxer `.env` no es puja al repositori; `.env.example` sí.
+El fitxer `.env` conté l'identificador de l'equip (`NCC=N06`), que dona nom als contenidors (`R-N06`, `B-N06`...), i la targeta de l'equip connectada a `itb 6` (`INTRANET_PARENT`, per defecte `enp3s0`; es veu amb `ip -br addr`). El fitxer `.env` no es puja al repositori; `.env.example` sí.
 
 ## 5. Imatge base
 Tots els equips es construeixen a partir d'**una sola imatge** (`images/base/Dockerfile`), basada en Ubuntu 22.04. Inclou:
@@ -75,7 +76,7 @@ En arrencar, `images/base/entrypoint.sh` fa, per aquest ordre:
 4. Arrenca `sshd` i, finalment, el procés principal del contenidor.
 
 ## 6. Xarxes
-`docker-compose.yml` defineix tres xarxes *bridge* amb adreçament fix:
+`docker-compose.yml` defineix tres xarxes amb adreçament fix (`dmz` i `nat` són de tipus *bridge*; `intranet` és de tipus `ipvlan`, vegeu l'[arquitectura](01-arquitectura.md), apartat 4.1):
 
 | Xarxa | Subxarxa | Contingut |
 |---|---|---|
@@ -83,7 +84,7 @@ En arrencar, `images/base/entrypoint.sh` fa, per aquest ordre:
 | `intranet` | 10.213.2.0/24 | Serveis interns i clients |
 | `nat` | 10.213.3.0/24 | Sortida a Internet |
 
-El router (`R-N06`) és l'únic contenidor connectat a les tres xarxes (10.213.3.2, 10.213.1.254 i 10.213.2.254). La resta tenen el router com a *gateway*. En aquest punt del projecte, el compose inclou el router i un client Linux (`PC-L-N06`, 10.213.2.50) sobre la imatge base.
+El router (`R-N06`) és l'únic contenidor connectat a les tres xarxes (10.213.3.2, 10.213.1.254 i 10.213.2.254). La resta tenen el router com a *gateway*. El compose inclou el router i, des del sprint 2, la BBDD. Els clients no hi són: són màquines virtuals a Isard (vegeu el [document dels clients](04-clients-isard.md)).
 
 S'ha triat el rang 10.213.0.0/16 perquè el 172.20.0.0/16 xocava amb una xarxa Docker ja existent al servidor.
 
@@ -108,8 +109,10 @@ Resultat esperat: el missatge `compose OK` i la imatge `p00-base:prova` constru�
 | `permission denied` en executar `docker` | L'usuari no és al grup `docker` | `sudo usermod -aG docker $USER` i tornar a iniciar la sessió |
 | Falla `apt-get` en construir la imatge | No hi ha accés a Internet | Comprovar la connexió i tornar a executar `docker build` |
 | `docker compose config` mostra un error de format | El fitxer YAML té una indentació incorrecta | Revisar la línia que indica l'error |
+| Error en crear la xarxa `intranet` (interfície pare no trobada) | La targeta indicada a `INTRANET_PARENT` no existeix a l'equip | `ip -br addr` i posar el nom correcte al `.env` |
 
 ## 9. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 22/10/2026 | Primera versió: requisits, imatge base, xarxes i comprovació |
+| 1.1 | 17/11/2026 | La intranet passa a `ipvlan` per itb 6, variable `INTRANET_PARENT` i clients fora del compose |

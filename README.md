@@ -18,7 +18,7 @@ Un router (`R-N06`) connecta tres xarxes i fa de firewall:
 | Intranet | 10.213.2.0/24 | BBDD MySQL, DNS, DHCP, monitor i clients (Linux i Windows) |
 | NAT | 10.213.3.0/24 | Sortida a Internet |
 
-Cada servei és un contenidor Docker. El diagrama, l'adreçament IP i la política del firewall són a l'[arquitectura](docs/01-arquitectura.md). Tots els equips tenen l'usuari `bchecker` (contrasenya `bchecker121`), tal com demana l'enunciat.
+Cada servei és un contenidor Docker; els dos clients (Linux i Windows) són màquines virtuals al laboratori d'Isard, connectades a la intranet per la xarxa `itb 6`. El diagrama, l'adreçament IP i la política del firewall són a l'[arquitectura](docs/01-arquitectura.md). Tots els equips tenen l'usuari `bchecker` (contrasenya `bchecker121`), tal com demana l'enunciat.
 
 ## Estat
 | Sprint | Contingut | Estat |
@@ -27,7 +27,7 @@ Cada servei és un contenidor Docker. El diagrama, l'adreçament IP i la políti
 | 2 | Serveis: BBDD, web, SSH, DHCP, DNS, FTP, monitor i clients | En curs |
 | 3 | Integració, proves, documentació final i defensa | Pendent |
 
-Ara mateix el `docker-compose.yml` desplega el **router** (`R-N06`), el **client Linux** (`PC-L-N06`) i la **base de dades** (`B-N06`). La resta de serveis tenen la carpeta reservada a `services/` i s'afegeixen al sprint 2. El detall és al [pla del projecte](docs/16-pla-projecte.md).
+Ara mateix el `docker-compose.yml` desplega el **router** (`R-N06`) i la **base de dades** (`B-N06`); el client Linux (`PC-L-N06`) és una màquina virtual d'Isard. La resta de serveis tenen la carpeta reservada a `services/` i s'afegeixen al sprint 2. El detall és al [pla del projecte](docs/16-pla-projecte.md).
 
 ## Posada en marxa
 Requisits: Linux amb Docker Engine 24 o superior, Docker Compose v2 i Git. El procediment complet és al [manual de desplegament](docs/02-desplegament-client.md).
@@ -40,10 +40,12 @@ docker compose up -d --build
 docker compose ps
 ```
 
-Comprovació ràpida: el client Linux arriba al router.
+El fitxer `.env` indica la targeta de l'equip connectada a `itb 6` (`INTRANET_PARENT`, per defecte `enp3s0`); cal canviar-la si l'equip en té una altra.
+
+Comprovació ràpida, des del client Linux (màquina virtual d'Isard): arriba al router.
 
 ```bash
-docker exec PC-L-N06 ping -c 2 10.213.2.254
+ping -c 2 10.213.2.254
 ```
 
 Per aturar la infraestructura: `docker compose down`.
@@ -51,8 +53,8 @@ Per aturar la infraestructura: `docker compose down`.
 ## Estructura del repositori
 ```
 .
-├── docker-compose.yml     xarxes, router i client Linux
-├── .env.example           NCC=N06 (identificador de l'equip)
+├── docker-compose.yml     xarxes, router i BBDD
+├── .env.example           NCC (equip) i INTRANET_PARENT (targeta d'itb 6)
 ├── images/base/           imatge base comuna (Dockerfile i entrypoint.sh)
 ├── services/              configuració de cada servei
 │   ├── router/init.sh     reenviament, NAT i firewall
@@ -69,6 +71,7 @@ L'[índex de la documentació](docs/README.md) llista tots els documents. Els m�
 - [Arquitectura](docs/01-arquitectura.md)
 - [Manual de desplegament](docs/02-desplegament-client.md)
 - [Base de dades MySQL](docs/03-bbdd-mysql.md)
+- [Clients a Isard (itb 6)](docs/04-clients-isard.md)
 - [Router i firewall](docs/10-router-firewall.md)
 - [Control de versions amb Git i GitHub](docs/14-control-versions.md)
 - [Criteris de rendiment i disponibilitat](docs/15-criteris-rendiment-disponibilitat.md)
