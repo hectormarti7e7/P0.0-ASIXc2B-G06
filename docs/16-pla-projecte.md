@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.2 · 17/11/2026 · Sprint 2 |
+| **Versió** | 1.3 · 18/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -46,7 +46,7 @@ Aquest document recull com s'organitza el projecte: les fases, qui fa cada tasca
 |---|---|
 | BBDD MySQL amb l'usuari `bchecker` | Josep Pérez |
 | Client Linux (PC-L-N06): màquina virtual a Isard, connectada per itb 6 | Josep Pérez |
-| Connexió de la intranet amb itb 6 (`ipvlan`) | Josep Pérez |
+| Connexió dels clients amb la intranet per itb 6 (enrutament) | Josep Pérez |
 | Script de càrrega del CSV d'equipaments | Josep Pérez |
 | Servidor SSH | Josep Pérez |
 | Aplicació web Flask que mostra les taules | Josep Pérez |
@@ -90,7 +90,8 @@ L'enunciat fixa 5 hores setmanals per persona, és a dir, 10 hores per sprint.
 | Retard per la poca dedicació disponible (10 h per persona i sprint) | Alta | Alt | Tasques petites amb criteri de «feta» a ProofHub, prioritat als requisits de l'enunciat i revisió de l'estat a cada sessió |
 | Conflicte entre el rang de les xarxes Docker i xarxes existents al servidor (ja va passar amb 172.20.0.0/16) | Mitjana | Mitjà | S'ha fixat 10.213.0.0/16; si torna a passar, es canvien les tres subxarxes del compose ([manual de desplegament](02-desplegament-client.md), apartat 8) |
 | El client Windows no es pot executar com a contenidor Linux | Alta | Mitjà | És una màquina virtual al laboratori d'Isard, connectada a la intranet per itb 6 |
-| Els clients no veuen els contenidors per un filtre de MAC de la xarxa virtual (ja va passar amb un pont) | Mitjana | Alt | La intranet usa `ipvlan`, que fa que tots els contenidors surtin amb la MAC de la targeta de l'equip; la targeta es tria amb `INTRANET_PARENT` ([clients](04-clients-isard.md)) |
+| Els clients no veuen els contenidors: un pont i `ipvlan` ja han fallat (filtre de MAC d'Isard i trànsit que no passa pel router) | Mitjana | Alt | Els clients arriben per enrutament a través de l'equip dels serveis (`scripts/xarxa-clients.sh`), amb la intranet com a pont normal ([clients](04-clients-isard.md)) |
+| Docker 28 o superior bloqueja l'accés directe als contenidors i les regles de reenviament es perden en reiniciar | Mitjana | Mitjà | Mode `nat-unprotected` a la xarxa `intranet` i tornar a executar el script després de cada `docker compose up` |
 | Pèrdua de configuració o de dades del servidor | Baixa | Alt | Tota la configuració és a GitHub i les dades de MySQL van a un volum Docker; la infraestructura es recrea amb `docker compose up -d --build` |
 | Barreja de *backends* iptables i nftables a la mateixa màquina | Baixa | Mitjà | Mantenir iptables al router i no activar el *backend* nftables experimental de Docker ([estudi previ 11](11-estudi-previ-web-monitor-firewall.md), apartat 4) |
 | Una actualització de MySQL a la 8.4 desactiva `mysql_native_password` | Baixa | Mitjà | Fixar MySQL 8.0 i revisar els usuaris abans d'actualitzar ([estudi previ 09](09-estudi-previ.md), apartat 9.3) |
@@ -110,3 +111,4 @@ L'enunciat fixa 5 hores setmanals per persona, és a dir, 10 hores per sprint.
 | 1.0 | 15/11/2026 | Primera versió: fases, tasques, recursos, dedicació, riscos i seguiment |
 | 1.1 | 16/11/2026 | Una branca per tasca de ProofHub en lloc d'una per persona |
 | 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard (itb 6) i nou risc del filtre de MAC |
+| 1.3 | 18/11/2026 | Els clients arriben a la intranet per enrutament; riscos actualitzats |
