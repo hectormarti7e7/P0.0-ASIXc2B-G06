@@ -27,7 +27,7 @@ Cada servei és un contenidor Docker. El diagrama, l'adreçament IP i la políti
 | 2 | Serveis: BBDD, web, SSH, DHCP, DNS, FTP, monitor i clients | En curs |
 | 3 | Integració, proves, documentació final i defensa | Pendent |
 
-Ara mateix el `docker-compose.yml` desplega el **router** (`R-N06`) i el **client Linux** (`PC-L-N06`). La resta de serveis tenen la carpeta reservada a `services/` i s'afegeixen al sprint 2. El detall és al [pla del projecte](docs/16-pla-projecte.md).
+Ara mateix el `docker-compose.yml` desplega el **router** (`R-N06`), el **client Linux** (`PC-L-N06`) i la **base de dades** (`B-N06`). La resta de serveis tenen la carpeta reservada a `services/` i s'afegeixen al sprint 2. El detall és al [pla del projecte](docs/16-pla-projecte.md).
 
 ## Posada en marxa
 Requisits: Linux amb Docker Engine 24 o superior, Docker Compose v2 i Git. El procediment complet és al [manual de desplegament](docs/02-desplegament-client.md).
@@ -56,7 +56,8 @@ Per aturar la infraestructura: `docker compose down`.
 ├── images/base/           imatge base comuna (Dockerfile i entrypoint.sh)
 ├── services/              configuració de cada servei
 │   ├── router/init.sh     reenviament, NAT i firewall
-│   └── db, dhcp, dns, ftp, monitor, ssh, web   (carpetes reservades per al sprint 2)
+│   ├── db/                MySQL: init.sh i init.sql
+│   └── dhcp, dns, ftp, monitor, ssh, web   (carpetes reservades per al sprint 2)
 ├── docs/                  documentació (vegeu l'índex)
 ├── tests/                 proves (sprints 2 i 3)
 └── .github/               plantilla de Pull Request
@@ -67,10 +68,11 @@ L'[índex de la documentació](docs/README.md) llista tots els documents. Els m�
 
 - [Arquitectura](docs/01-arquitectura.md)
 - [Manual de desplegament](docs/02-desplegament-client.md)
+- [Base de dades MySQL](docs/03-bbdd-mysql.md)
 - [Router i firewall](docs/10-router-firewall.md)
 - [Control de versions amb Git i GitHub](docs/14-control-versions.md)
 - [Criteris de rendiment i disponibilitat](docs/15-criteris-rendiment-disponibilitat.md)
 - [Pla del projecte](docs/16-pla-projecte.md)
 
 ## Com col·laborem
-`main` és la branca estable i s'hi arriba per Pull Request. Cada integrant treballa en una branca `sprintN/nom`. Les regles i les comandes són a la [guia de control de versions](docs/14-control-versions.md).
+`main` és la branca estable i s'hi arriba per Pull Request. Cada tasca de ProofHub té la seva branca de vida curta (per exemple `sprint2/bbdd-mysql`). Les regles i les comandes són a la [guia de control de versions](docs/14-control-versions.md).

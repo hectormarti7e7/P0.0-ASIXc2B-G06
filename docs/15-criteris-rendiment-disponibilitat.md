@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.0 · 15/11/2026 · Sprint 1 |
+| **Versió** | 1.1 · 16/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -86,7 +86,7 @@ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}'
 |---|---|
 | Política de reinici `restart: unless-stopped` a tots els serveis (`docker-compose.yml`) | Fet |
 | `healthcheck` del router (regla `MASQUERADE`) i espera del client fins que el router és `healthy` | Fet |
-| `healthcheck` de la BBDD | Previst al sprint 2 |
+| `healthcheck` de la BBDD (`mysqladmin ping` amb l'usuari `bchecker`) | Fet |
 | Sondes d'Uptime Kuma per servei | Previst al sprint 2 |
 | Proves de càrrega amb `ab` i proves de recuperació | Previstes als sprints 2 i 3 |
 
@@ -95,9 +95,10 @@ Es completa amb cada mesura feta.
 
 | Data | Criteri | Valor mesurat | Objectiu | Compleix | Observacions |
 |---|---|---|---|---|---|
-| | | | | | |
+| 16/11/2026 | D4 | 6,8 s | 120 s o menys | Sí | `time docker compose up -d --wait db` amb volum nou, imatge ja construïda i router en marxa |
 
 ## 7. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 15/11/2026 | Primera versió: criteris, mètode de mesura i estat d'implementació |
+| 1.1 | 16/11/2026 | `healthcheck` de la BBDD i primera mesura (D4) |
