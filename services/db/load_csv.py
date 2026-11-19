@@ -47,13 +47,25 @@ def get_csv_bytes():
 
 
 def decode_text(raw):
-    """Descodifica UTF-8 (amb o sense BOM) o UTF-16."""
+    """Descodifica UTF-16, UTF-8 (amb o sense BOM) o, si no és UTF-8 vàlid, Windows-1252.
+
+    El CSV d'Open Data BCN no sempre ve en UTF-8. Si es descodifica com a UTF-8 amb
+    errors="replace", les lletres amb accent es perden (apareixen com a «�»).
+    """
     if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        print("[loader] codificació detectada: UTF-16")
         return raw.decode("utf-16", errors="replace")
     if b"\x00" in raw[:4096]:
         enc = "utf-16-le" if raw[1:2] == b"\x00" else "utf-16-be"
+        print(f"[loader] codificació detectada: {enc}")
         return raw.decode(enc, errors="replace")
-    return raw.decode("utf-8-sig", errors="replace")
+    try:
+        text = raw.decode("utf-8-sig")
+        print("[loader] codificació detectada: UTF-8")
+        return text
+    except UnicodeDecodeError:
+        print("[loader] codificació detectada: Windows-1252 (no és UTF-8 vàlid)")
+        return raw.decode("cp1252", errors="replace")
 
 
 def clean(name, used):
@@ -87,7 +99,9 @@ def connect():
 
 
 def main():
-    text = decode_text(get_csv_bytes()).replace("\x00", "")
+    # Es treuen els bytes nuls i els BOM (U+FEFF) que el CSV porta dins de les dades:
+    # sense això el primer camp de cada fila (register_id) comença amb un caràcter invisible
+    text = decode_text(get_csv_bytes()).replace("\x00", "").replace(chr(0xFEFF), "")
     try:
         dialect = csv.Sniffer().sniff(text[:8192], delimiters=",;\t|")
     except csv.Error:
