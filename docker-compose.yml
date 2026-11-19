@@ -1,8 +1,8 @@
 # P0.0 - Desplegament d'infraestructura amb Docker
 # Cada servei és un contenidor. Els clients (Linux i Windows) no hi són: són màquines
-# virtuals a Isard que arriben a la intranet per la xarxa itb 6.
-# Variables a .env (copia .env.example). NCC = identificador de l'equip (N06);
-# INTRANET_PARENT = interfície d'aquest equip connectada a itb 6.
+# virtuals a Isard que arriben a la intranet per la xarxa itb 6, a través d'aquest equip
+# (scripts/xarxa-clients.sh).
+# Variables a .env (copia .env.example). NCC = identificador de l'equip (N06).
 name: p00-${NCC:-N06}
 
 x-base: &base
@@ -15,10 +15,11 @@ networks:
     ipam:
       config: [{ subnet: 10.213.1.0/24, gateway: 10.213.1.1 }]
   intranet:                         # serveis interns; els clients (VM d'Isard) hi arriben per itb 6
-    driver: ipvlan                  # tots els contenidors surten amb la MAC de la interfície
     driver_opts:
-      parent: ${INTRANET_PARENT:-enp3s0}
-      ipvlan_mode: l2
+      com.docker.network.bridge.name: br-intranet   # nom fix, l'usa scripts/xarxa-clients.sh
+      # Els clients d'Isard arriben als contenidors per enrutament directe: des de Docker 28
+      # això està bloquejat per defecte (regles raw PREROUTING). Només afecta a la intranet.
+      com.docker.network.bridge.gateway_mode_ipv4: nat-unprotected
     ipam:
       config: [{ subnet: 10.213.2.0/24, gateway: 10.213.2.1 }]
   nat:                              # sortida a Internet

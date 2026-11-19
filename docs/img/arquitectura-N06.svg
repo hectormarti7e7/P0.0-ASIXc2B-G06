@@ -7,7 +7,7 @@
 <rect width="1300" height="1030" fill="#ffffff"/>
 <text x="30" y="38" font-size="24" font-weight="bold" fill="#1a1a1a">P0.0 · Arquitectura de la infraestructura (equip N06)</text>
 <text x="30" y="62" font-size="13" fill="#555">Cada servei és un contenidor Docker. El router és un contenidor Linux amb iptables connectat a les tres xarxes i tot el trànsit entre xarxes hi passa.</text>
-<text x="30" y="82" font-size="13" fill="#555">Els clients (línia discontínua) no són contenidors: són màquines virtuals al laboratori d'Isard connectades a la intranet per la xarxa itb 6.</text>
+<text x="30" y="82" font-size="13" fill="#555">Els clients (línia discontínua) no són contenidors: són màquines virtuals d'Isard a la xarxa itb 6 i arriben a la intranet a través de l'equip dels serveis.</text>
 <g transform="translate(0,90)">
 <rect x="520" y="0" width="260" height="52" rx="8" fill="#f5f5f5" stroke="#444444" stroke-width="1.5"/>
 <text x="650.0" y="22.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">Internet / host</text>
@@ -62,10 +62,10 @@
 <text x="1070.0" y="714.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.20 · sondes a W, F, B i S</text>
 <rect x="890" y="741" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5" stroke-dasharray="6,4"/>
 <text x="1070.0" y="769.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">PC-L-N06 · Client Linux (VM)</text>
-<text x="1070.0" y="788.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.50 · VM d'Isard per itb 6</text>
+<text x="1070.0" y="788.0" text-anchor="middle" font-size="12" fill="#444">192.168.50.50 · VM d'Isard, xarxa itb 6</text>
 <rect x="890" y="815" width="360" height="64" rx="8" fill="#ffffff" stroke="#444444" stroke-width="1.5" stroke-dasharray="6,4"/>
 <text x="1070.0" y="843.0" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a1a">PC-W-N06 · Client Windows (VM)</text>
-<text x="1070.0" y="862.0" text-anchor="middle" font-size="12" fill="#444">10.213.2.60 · VM d'Isard per itb 6</text>
+<text x="1070.0" y="862.0" text-anchor="middle" font-size="12" fill="#444">192.168.50.60 · VM d'Isard, xarxa itb 6</text>
 <polyline points="410,480 560,480 560,364" fill="none" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
 <text x="438" y="498" font-size="12" font-weight="bold" fill="#2e7d32">TCP 3306 · 53</text>
 <line x1="740" y1="362" x2="740" y2="551" stroke="#2e7d32" stroke-width="2.5"/>

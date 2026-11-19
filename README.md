@@ -18,7 +18,7 @@ Un router (`R-N06`) connecta tres xarxes i fa de firewall:
 | Intranet | 10.213.2.0/24 | BBDD MySQL, DNS, DHCP, monitor i clients (Linux i Windows) |
 | NAT | 10.213.3.0/24 | Sortida a Internet |
 
-Cada servei és un contenidor Docker; els dos clients (Linux i Windows) són màquines virtuals al laboratori d'Isard, connectades a la intranet per la xarxa `itb 6`. El diagrama, l'adreçament IP i la política del firewall són a l'[arquitectura](docs/01-arquitectura.md). Tots els equips tenen l'usuari `bchecker` (contrasenya `bchecker121`), tal com demana l'enunciat.
+Cada servei és un contenidor Docker; els dos clients (Linux i Windows) són màquines virtuals al laboratori d'Isard, a la xarxa `itb 6`, que arriben a la intranet a través de l'equip dels serveis. El diagrama, l'adreçament IP i la política del firewall són a l'[arquitectura](docs/01-arquitectura.md). Tots els equips tenen l'usuari `bchecker` (contrasenya `bchecker121`), tal com demana l'enunciat.
 
 ## Estat
 | Sprint | Contingut | Estat |
@@ -40,7 +40,7 @@ docker compose up -d --build
 docker compose ps
 ```
 
-El fitxer `.env` indica la targeta de l'equip connectada a `itb 6` (`INTRANET_PARENT`, per defecte `enp3s0`); cal canviar-la si l'equip en té una altra.
+Per als clients d'Isard (xarxa `itb 6`), després d'aixecar els contenidors s'executa `sudo ./scripts/xarxa-clients.sh` (vegeu [clients](docs/04-clients-isard.md)).
 
 Comprovació ràpida, des del client Linux (màquina virtual d'Isard): arriba al router.
 
@@ -54,7 +54,8 @@ Per aturar la infraestructura: `docker compose down`.
 ```
 .
 ├── docker-compose.yml     xarxes, router i BBDD
-├── .env.example           NCC (equip) i INTRANET_PARENT (targeta d'itb 6)
+├── .env.example           NCC=N06 (identificador de l'equip)
+├── scripts/               xarxa-clients.sh: connexió dels clients d'Isard
 ├── images/base/           imatge base comuna (Dockerfile i entrypoint.sh)
 ├── services/              configuració de cada servei
 │   ├── router/init.sh     reenviament, NAT i firewall

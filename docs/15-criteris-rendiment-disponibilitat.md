@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.2 · 17/11/2026 · Sprint 2 |
+| **Versió** | 1.3 · 18/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -62,11 +62,14 @@ docker events --since 5m --until 0s --filter container=R-N06 --filter event=kill
 Sondes d'Uptime Kuma per IP, una per servei i amb interval de 60 s. La disponibilitat és el percentatge que mostra el monitor a la finestra de mesura.
 
 ### Xarxa (P1, P2)
-Es mesuren des del client Linux (màquina virtual d'Isard). Per a P2 cal que la ruta per defecte passi pel router ([document dels clients](04-clients-isard.md), apartat 5.2).
+P1 es mesura des del client Linux (màquina virtual d'Isard) i P2 des d'un contenidor de la intranet, perquè el client surt a Internet per la xarxa *Default* d'Isard i no pel router ([document dels clients](04-clients-isard.md), apartat 5).
 ```bash
+# Al client Linux (P1)
 ping -c 20 10.213.2.254
-ping -c 20 1.1.1.1
-ip route show default
+
+# A l'equip dels serveis (P2)
+docker exec B-N06 ping -c 20 1.1.1.1
+docker exec B-N06 ip route show default
 ```
 Ha de mostrar `default via 10.213.2.254` i cap paquet perdut.
 
@@ -104,3 +107,4 @@ Es completa amb cada mesura feta.
 | 1.0 | 15/11/2026 | Primera versió: criteris, mètode de mesura i estat d'implementació |
 | 1.1 | 16/11/2026 | `healthcheck` de la BBDD i primera mesura (D4) |
 | 1.2 | 17/11/2026 | Les mesures de xarxa es fan des del client Linux, que ara és una màquina virtual |
+| 1.3 | 18/11/2026 | P2 es mesura des de la BBDD, perquè el client surt a Internet per Isard |
