@@ -73,6 +73,7 @@ L'[índex de la documentació](docs/README.md) llista tots els documents. Els m�
 - [Manual de desplegament](docs/02-desplegament-client.md)
 - [Base de dades MySQL](docs/03-bbdd-mysql.md)
 - [Clients a Isard (itb 6)](docs/04-clients-isard.md)
+- [Càrrega del CSV](docs/05-carrega-csv.md)
 - [Router i firewall](docs/10-router-firewall.md)
 - [Control de versions amb Git i GitHub](docs/14-control-versions.md)
 - [Criteris de rendiment i disponibilitat](docs/15-criteris-rendiment-disponibilitat.md)

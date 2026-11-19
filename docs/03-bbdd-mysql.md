@@ -17,7 +17,7 @@
 6. [Historial de versions](#6-historial-de-versions)
 
 ## 1. Objectiu i abast
-Aquest document descriu el servidor de base de dades `B-N06`: què conté, com es crea i com es comprova que funciona. La càrrega de les dades del CSV, l'accés de l'aplicació web i la regla del firewall que deixa la DMZ consultar-lo es documenten amb les seves tasques.
+Aquest document descriu el servidor de base de dades `B-N06`: què conté, com es crea i com es comprova que funciona. La càrrega de les dades del CSV es documenta al [document 05](05-carrega-csv.md). L'accés de l'aplicació web i la regla del firewall que deixa la DMZ consultar-lo es documenten amb les seves tasques.
 
 ## 2. Característiques
 | Element | Valor |

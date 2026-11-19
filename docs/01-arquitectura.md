@@ -72,7 +72,6 @@ Totes les adreces són fixes i es defineixen a `docker-compose.yml`. En cada xar
 | FTP | F-N06 | DMZ | 10.213.1.11 |
 | SSH (bastió) | S-N06 | DMZ | 10.213.1.12 |
 | Base de dades | B-N06 | Intranet | 10.213.2.10 |
-| Càrrega de dades (temporal) | LOADER-N06 | Intranet | 10.213.2.11 |
 | Monitor de xarxa | MON-N06 | Intranet | 10.213.2.20 |
 | DNS | DNS-N06 | Intranet | 10.213.2.53 |
 | Client Linux | PC-L-N06 | itb 6 | 192.168.50.50 (ruta cap a la intranet per 192.168.50.22) |
