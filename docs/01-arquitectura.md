@@ -57,6 +57,7 @@ Els clients no són contenidors: són dues màquines virtuals al laboratori d'Is
 - Els clients tenen una ruta `10.213.2.0/24 via 192.168.50.22`.
 - L'equip dels serveis reenvia el trànsit entre `enp3s0` i el pont de la intranet (`br-intranet`) amb el script `scripts/xarxa-clients.sh`.
 - Les respostes tornen pel router (`R-N06`), que té una ruta `192.168.50.0/24 via 10.213.2.1` (l'equip dels serveis a la intranet).
+- Els clients només tenen la targeta d'`itb 6`: surten a Internet a través de l'equip dels serveis, amb NAT (`scripts/xarxa-clients.sh --internet`), i no pel router de la pràctica.
 
 Es va provar abans de connectar la targeta d'`itb 6` directament a la intranet (amb un pont i amb `ipvlan`), però no funciona: un pont fa que els contenidors surtin amb la seva pròpia MAC, que la xarxa virtual d'Isard descarta, i amb `ipvlan` el trànsit que ha de passar pel router surt per la targeta en comptes d'arribar al router (la web no hauria pogut arribar a la BBDD). Amb el reenviament per IP, la intranet continua sent un pont normal i tot el trànsit entre xarxes passa pel router.
 
