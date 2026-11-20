@@ -1,7 +1,9 @@
 #!/bin/bash
 # Connecta els clients (màquines virtuals d'Isard a la xarxa itb 6) amb la intranet.
 # S'executa a l'equip dels serveis, després de `docker compose up -d`:
-#     sudo ./scripts/xarxa-clients.sh
+#     sudo ./scripts/xarxa-clients.sh              (clients -> intranet)
+#     sudo ./scripts/xarxa-clients.sh --internet   (a més, els clients surten a Internet
+#                                                   per aquest equip, amb NAT)
 #
 # Els clients tenen una adreça d'itb 6 (192.168.50.0/24) i una ruta cap a la intranet
 # (10.213.2.0/24) per aquest equip. Aquest equip reenvia el trànsit entre la targeta
@@ -36,5 +38,21 @@ add_rule() {
 add_rule -i "$IF_ITB" -o "$BR" -s "$ITB_NET" -d "$INTRANET_NET" -j ACCEPT
 add_rule -i "$BR" -o "$IF_ITB" -s "$INTRANET_NET" -d "$ITB_NET" -j ACCEPT
 
+# Opcional: sortida a Internet dels clients a través d'aquest equip (no pel router de la
+# pràctica). Serveix perquè les VM només tenen la targeta d'itb 6 i puguin instal·lar paquets.
+if [ "${1:-}" = "--internet" ]; then
+  IF_NET="${INTERNET_IF:-$(ip route show default | awk '/default/ {print $5; exit}')}"
+  [ -n "$IF_NET" ] && ip link show "$IF_NET" >/dev/null 2>&1 \
+    || { echo "ERROR: no es troba la targeta amb Internet (indica-la amb INTERNET_IF=...)"; exit 1; }
+  [ "$IF_NET" != "$IF_ITB" ] \
+    || { echo "ERROR: la targeta amb Internet ($IF_NET) coincideix amb la d'itb 6"; exit 1; }
+  add_rule -i "$IF_ITB" -o "$IF_NET" -s "$ITB_NET" -j ACCEPT
+  add_rule -i "$IF_NET" -o "$IF_ITB" -d "$ITB_NET" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  iptables -t nat -C POSTROUTING -s "$ITB_NET" -o "$IF_NET" -j MASQUERADE 2>/dev/null \
+    || iptables -t nat -A POSTROUTING -s "$ITB_NET" -o "$IF_NET" -j MASQUERADE
+  echo "[xarxa-clients] sortida a Internet dels clients per $IF_NET (NAT)"
+fi
+
 echo "[xarxa-clients] $IF_ITB ($ITB_NET) <-> $BR ($INTRANET_NET) reenviat"
 iptables -S DOCKER-USER | grep -E "$IF_ITB|$BR" || true
+iptables -t nat -S POSTROUTING | grep -F "$ITB_NET" || true
