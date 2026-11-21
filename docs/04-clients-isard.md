@@ -150,7 +150,7 @@ su - bchecker -c "whoami"
 |---|---|
 | `SHOW DATABASES` | Llista `equipaments`, `information_schema` i `performance_schema` |
 | `SELECT COUNT(*)` | 2.709 files |
-| `nmap -p 3306` | `3306/tcp open mysql`, amb 0,00045 s de latència |
+| `nmap -p 3306` | `3306/tcp open mysql`, amb una latència inferior a 1 ms |
 | `traceroute -n` | Dos salts: `192.168.50.22` (equip dels serveis) i `10.213.2.10` |
 | `su - bchecker -c "whoami"` | Accepta la contrasenya i mostra `bchecker` |
 
