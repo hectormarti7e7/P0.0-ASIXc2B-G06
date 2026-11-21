@@ -54,10 +54,10 @@ services:
       timeout: 3s
       retries: 20
 
-  # Servidor de base de dades (intranet). La càrrega del CSV és una tasca a part.
+  # Servidor de base de dades (intranet). El CSV es carrega amb /opt/load_csv.py (docs/05).
   db:
     <<: *base
-    build: { context: ./images/base, args: { PKGS: "mysql-server mysql-client" } }
+    build: { context: ./images/base, args: { PKGS: "mysql-server mysql-client python3 python3-pymysql" } }
     image: p00-db
     container_name: B-${NCC:-N06}
     hostname: B-${NCC:-N06}
@@ -71,6 +71,8 @@ services:
       - db-data:/var/lib/mysql
       - ./services/db/init.sh:/opt/init.sh:ro
       - ./services/db/init.sql:/opt/init.sql:ro
+      - ./services/db/load_csv.py:/opt/load_csv.py:ro
+      - ./data:/data:ro               # còpia local del CSV, si no hi ha descarrega
     networks:
       intranet: { ipv4_address: 10.213.2.10 }
     depends_on: { router: { condition: service_healthy } }
