@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.3 · 18/11/2026 · Sprint 2 |
+| **Versió** | 1.4 · 19/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -89,8 +89,9 @@ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}'
 | Element | Estat |
 |---|---|
 | Política de reinici `restart: unless-stopped` a tots els serveis (`docker-compose.yml`) | Fet |
-| `healthcheck` del router (regla `MASQUERADE`) i espera del client fins que el router és `healthy` | Fet |
+| `healthcheck` del router (regla `MASQUERADE`) i espera de la BBDD fins que el router és `healthy` | Fet |
 | `healthcheck` de la BBDD (`mysqladmin ping` amb l'usuari `bchecker`) | Fet |
+| Script de càrrega del CSV (`load_csv.py`), mesurat (P5) | Fet |
 | Sondes d'Uptime Kuma per servei | Previst al sprint 2 |
 | Proves de càrrega amb `ab` i proves de recuperació | Previstes als sprints 2 i 3 |
 
@@ -100,6 +101,7 @@ Es completa amb cada mesura feta.
 | Data | Criteri | Valor mesurat | Objectiu | Compleix | Observacions |
 |---|---|---|---|---|---|
 | 16/11/2026 | D4 | 6,8 s | 120 s o menys | Sí | `time docker compose up -d --wait db` amb volum nou, imatge ja construïda i router en marxa |
+| 19/11/2026 | P5 | 1,0 s (2.709 files) | 60 s o menys i totes les files | Sí | `time docker exec B-N06 python3 /opt/load_csv.py`; una sola mesura ([càrrega del CSV](05-carrega-csv.md)) |
 
 ## 7. Historial de versions
 | Versió | Data | Canvis |
@@ -108,3 +110,4 @@ Es completa amb cada mesura feta.
 | 1.1 | 16/11/2026 | `healthcheck` de la BBDD i primera mesura (D4) |
 | 1.2 | 17/11/2026 | Les mesures de xarxa es fan des del client Linux, que ara és una màquina virtual |
 | 1.3 | 18/11/2026 | P2 es mesura des de la BBDD, perquè el client surt a Internet per Isard |
+| 1.4 | 19/11/2026 | Primera mesura de P5 (càrrega del CSV) |
