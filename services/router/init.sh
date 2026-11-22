@@ -30,8 +30,16 @@ iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -i "$IF_INT" -j ACCEPT
 # 3. DMZ -> Internet (actualitzacions)
 iptables -A FORWARD -i "$IF_DMZ" -o "$IF_NAT" -j ACCEPT
-# 4. Tot el que no coincideix es registra (5 per minut) i es descarta per la política
+# 4. SSH (port 2222): de fora cap al servidor S-N06 de la DMZ (només aquest port i aquest destí)
+iptables -A FORWARD -i "$IF_NAT" -o "$IF_DMZ" -p tcp -d 10.213.1.12 --dport 2222 -j ACCEPT
+# 5. Tot el que no coincideix es registra (5 per minut) i es descarta per la política
 iptables -A FORWARD -m limit --limit 5/min -j LOG --log-prefix "FW-DROP: "
+
+# --- DNAT: el port 2222 publicat al router es reenvia al servidor SSH de la DMZ ---
+iptables -t nat -A PREROUTING -i "$IF_NAT" -p tcp --dport 2222 -j DNAT --to-destination 10.213.1.12:2222
+
+# El servidor SSH respon sempre al router (si no, la resposta sortiria per una altra interfície)
+iptables -t nat -A POSTROUTING -o "$IF_DMZ" -p tcp -d 10.213.1.12 --dport 2222 -j MASQUERADE
 
 # --- NAT: sortida a Internet amb l'adreça del router ---
 iptables -t nat -A POSTROUTING -o "$IF_NAT" -j MASQUERADE
