@@ -4,10 +4,11 @@ Només fa consultes de lectura. Els noms de taula i de columna no vénen mai de 
 sense validar: es comproven contra el que diu la base de dades. Els valors de cerca
 sempre s'envien com a paràmetres.
 """
+import hmac
 import os
 
 import pymysql
-from flask import Flask, abort, render_template_string, request
+from flask import Flask, Response, abort, render_template_string, request
 from markupsafe import escape
 from werkzeug.exceptions import HTTPException
 
@@ -22,6 +23,25 @@ DB = dict(
     connect_timeout=5,
 )
 PER_PAGINA = 50
+
+# Autenticació HTTP Basic: sense credencials vàlides, 401. Les credencials vénen del compose.
+APP_USER = os.environ.get("APP_USER", "bchecker")
+APP_PASS = os.environ.get("APP_PASS", "bchecker121")
+RUTES_LLIURES = {"/health"}     # no mostra dades; la fa servir el healthcheck del contenidor
+
+
+@app.before_request
+def demana_credencials():
+    if request.path in RUTES_LLIURES:
+        return None
+    auth = request.authorization
+    # compare_digest evita deduir la contrasenya pel temps de resposta
+    if auth and auth.type == "basic" \
+            and hmac.compare_digest((auth.username or "").encode(), APP_USER.encode()) \
+            and hmac.compare_digest((auth.password or "").encode(), APP_PASS.encode()):
+        return None
+    return Response("Cal autenticar-se\n", 401,
+                    {"WWW-Authenticate": 'Basic realm="P0.0 N06", charset="UTF-8"'})
 
 PLANTILLA = """<!doctype html>
 <html lang="ca"><head><meta charset="utf-8">
