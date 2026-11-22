@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autors** | Josep Pérez, Hèctor Martí |
-| **Versió** | 1.3 · 18/11/2026 · Sprint 2 |
+| **Versió** | 1.4 · 22/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -94,7 +94,7 @@ El router aplica la política `FORWARD DROP`: tot el trànsit que ha de travessa
 | 5 | DMZ | Internet | Tot | Actualitzacions |
 | 6 | Internet | Web (W-N06) | TCP 80 i 443 | Servei públic |
 | 7 | Internet | FTP (F-N06) | TCP 21 i 30000-30009 | FTP actiu i mode passiu |
-| 8 | Internet | SSH (S-N06) | TCP 22 | Accés d'administració pel bastió |
+| 8 | Internet | SSH (S-N06) | TCP 2222 | Accés d'administració pel bastió (vegeu el [document 07](07-servidor-ssh.md)) |
 
 Tot el que no coincideix amb cap d'aquestes regles es bloqueja. Els paquets descartats es registren (límit de 5 per minut) amb el prefix `FW-DROP:`.
 
@@ -112,7 +112,7 @@ Així, si un servei exposat a Internet es veiés compromès, no podria arribar a
 |---|---|---|
 | 80 i 443 | W-N06 (10.213.1.10) | 80 i 443 |
 | 21 i 30000-30009 | F-N06 (10.213.1.11) | 21 i 30000-30009 |
-| 2222 | S-N06 (10.213.1.12) | 22 |
+| 2222 | S-N06 (10.213.1.12) | 2222 |
 
 La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`) a la interfície de la xarxa NAT.
 
@@ -136,3 +136,4 @@ La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`)
 | 1.1 | 26/10/2026 | Adreçament IP i política del firewall (Hèctor Martí) |
 | 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard connectades per itb 6 |
 | 1.3 | 18/11/2026 | Els clients arriben a la intranet per enrutament a través de l'equip dels serveis (en lloc d'`ipvlan`) |
+| 1.4 | 22/11/2026 | El servidor SSH escolta al port 2222 (no al 22) i el router hi fa el reenviament |
