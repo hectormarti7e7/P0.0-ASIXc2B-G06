@@ -15,6 +15,7 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | [03 · Base de dades MySQL](03-bbdd-mysql.md) | Servidor MySQL, base de dades `equipaments`, usuari `bchecker` i proves | Josep Pérez | 1.0 |
 | [04 · Clients a Isard (itb 6)](04-clients-isard.md) | Màquines virtuals dels clients, connexió amb la intranet i proves | Josep Pérez | 1.2 |
 | [05 · Càrrega del CSV](05-carrega-csv.md) | Script de càrrega, origen de les dades, execució i verificació | Josep Pérez | 1.0 |
+| [06 · Aplicació web](06-aplicacio-web.md) | Aplicació Flask que mostra les taules, regla DMZ → BBDD i proves | Josep Pérez | 1.0 |
 | [07 · Servidor SSH](07-servidor-ssh.md) | Instal·lació, configuració, seguretat i proves (port 2222, només clau pública) | Josep Pérez | 1.0 |
 | [09 · Estudi previ: contenidors i base de dades](09-estudi-previ.md) | Contenidors o màquines virtuals, MySQL o MariaDB | Josep Pérez | 16/10/2026 |
 | [10 · Router i firewall](10-router-firewall.md) | Funcionament, interfícies i regles del router | Hèctor Martí | 1.0 |
@@ -26,7 +27,7 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 ## Documents previstos
 | Document | Sprint |
 |---|---|
-| Servidor web i aplicació que mostra les taules | 2 |
+| Servidor web nginx (davant de l'aplicació) | 2 |
 | DHCP, DNS, FTP i monitor de xarxa | 2 |
 | Client Windows | 2 |
 | Proves de rendiment i disponibilitat (resultats) | 2 i 3 |
