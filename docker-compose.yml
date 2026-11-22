@@ -94,6 +94,8 @@ services:
       DB_NAME: equipaments
       DB_USER: bchecker
       DB_PASS: bchecker121
+      APP_USER: bchecker             # credencials de l'aplicació (HTTP Basic)
+      APP_PASS: bchecker121
     volumes:
       - ./services/web/app:/opt/app:ro
       - ./services/web/init.sh:/opt/init.sh:ro
