@@ -44,6 +44,8 @@ services:
       GATEWAY: 10.213.3.1            # sortida a Internet (xarxa NAT)
     ports:
       - "2222:2222"                  # SSH: el router el reenvia a S-N06 (DNAT a init.sh)
+      - "80:80"                      # web (HTTP, redirigeix a HTTPS): cap a W-N06
+      - "443:443"                    # web (HTTPS): cap a W-N06
     volumes:
       - ./services/router/init.sh:/opt/init.sh:ro
     networks:
@@ -78,10 +80,10 @@ services:
       timeout: 3s
       retries: 10
 
-  # Aplicació web (DMZ): Flask amb gunicorn al port 5000. nginx (Hèctor) hi anirà al davant.
+  # Web (DMZ): nginx (80/443) davant de l'aplicació Flask, que escolta a gunicorn pel port 5000.
   web:
     <<: *base
-    build: { context: ./images/base, args: { PKGS: "gunicorn python3-flask python3-pymysql" } }
+    build: { context: ./images/base, args: { PKGS: "nginx openssl gunicorn python3-flask python3-pymysql" } }
     image: p00-web
     container_name: W-${NCC:-N06}
     hostname: W-${NCC:-N06}
@@ -94,13 +96,15 @@ services:
       DB_PASS: bchecker121
     volumes:
       - ./services/web/app:/opt/app:ro
+      - ./services/web/init.sh:/opt/init.sh:ro
+      - ./services/web/nginx.conf:/opt/nginx.conf:ro
     networks:
       dmz: { ipv4_address: 10.213.1.10 }
     depends_on:
       router: { condition: service_healthy }
       db: { condition: service_healthy }
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:5000/health >/dev/null"]
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:5000/health >/dev/null && curl -fsk https://127.0.0.1/health >/dev/null"]
       interval: 5s
       timeout: 5s
       retries: 10
