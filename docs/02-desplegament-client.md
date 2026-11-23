@@ -104,11 +104,11 @@ S'ha triat el rang 10.213.0.0/16 perquè el 172.20.0.0/16 xocava amb una xarxa D
 
 | Contenidor | IP | Servei | Document |
 |---|---|---|---|
-| `R-N06` | 10.213.3.2, 10.213.1.254, 10.213.2.254 | Router i *firewall* | [10](10-router-firewall.md) |
+| `R-N06` | 10.213.3.2, 10.213.1.254, 10.213.2.254 | Router i *firewall* | [01](01-arquitectura.md#6-política-del-firewall) |
 | `W-N06` | 10.213.1.10 | nginx (80, 443) + Flask | [06](06-aplicacio-web.md) |
 | `F-N06` | 10.213.1.11 | FTP (vsftpd, 21 i 30000-30009) | [24](24-servidor-ftp.md) |
 | `S-N06` | 10.213.1.12 | SSH (port 2222) | [07](07-servidor-ssh.md) |
-| `B-N06` | 10.213.2.10 | MySQL (base `equipaments`) | [03](03-bbdd-mysql.md), [05](05-carrega-csv.md) |
+| `B-N06` | 10.213.2.10 | MySQL (base `equipaments`) | [03](03-bbdd-mysql.md) |
 | `MON-N06` | 10.213.2.20 | Uptime Kuma (port 3001) | [26](26-monitoritzacio.md) |
 | `DNS-N06` | 10.213.2.53 | dnsmasq (domini `asix.local`) | [08](08-servidor-dns.md) |
 | `DHCP-N06` | 10.213.2.67 | dnsmasq (rang 10.213.2.100-200) | [25](25-servidor-dhcp.md) |
@@ -129,7 +129,7 @@ docker compose up -d --build --wait      # construeix i arrenca
 docker exec B-N06 python3 /opt/load_csv.py   # càrrega de les dades
 ```
 
-La càrrega del CSV, la variant sense descàrrega (`data/equipaments.csv`) i les consultes de verificació són al [document 05](05-carrega-csv.md).
+La càrrega del CSV, la variant sense descàrrega (`data/equipaments.csv`) i les consultes de verificació són al [document 03](03-bbdd-mysql.md#5-càrrega-del-csv).
 
 ## 9. Configuració i secrets
 - `.env`: identificador de l'equip (`NCC`) i `FTP_PASV_ADDRESS` (per defecte 192.168.50.22).
@@ -153,7 +153,7 @@ Noms dels serveis al compose: `router`, `ssh`, `web`, `ftp`, `monitor`, `dhcp`, 
 > `docker compose down -v` esborra els volums (dades de MySQL i del monitor). No s'ha d'usar si no es vol perdre la BBDD.
 
 ## 11. Manteniment
-- **Còpia de la BBDD**: `mysqldump`, com al [document 05](05-carrega-csv.md). No s'ha provat la restauració.
+- **Còpia de la BBDD**: `mysqldump`, com al [document 03](03-bbdd-mysql.md#58-seguretat-i-manteniment). No s'ha provat la restauració.
 - **Tornar a carregar el CSV**: el *loader* fa `DROP TABLE IF EXISTS`; cal fer abans una còpia.
 - **Reinici de l'host**: les regles de `DOCKER-USER` no persisteixen. Cal tornar a executar `sudo ./scripts/xarxa-clients.sh` (amb `--internet` si els clients han de sortir a Internet).
 - **Actualitzacions**: reconstruir amb `--build`. La imatge d'Uptime Kuma és Debian 10 i usa `archive.debian.org`.
@@ -180,7 +180,7 @@ docker compose ps
 ./scripts/comprova.sh
 ```
 
-`scripts/comprova.sh` mostra `PASS` o `FAIL` per a cada prova. El pla de proves complet és al [document 20](20-pla-proves.md).
+`scripts/comprova.sh` mostra `PASS` o `FAIL` per a cada prova. El pla de proves complet és a l'[apartat 7 del document 15](15-criteris-rendiment-disponibilitat.md#7-pla-de-proves).
 
 ## 13. Resolució de problemes
 | Símptoma | Causa probable | Solució |

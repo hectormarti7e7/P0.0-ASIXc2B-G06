@@ -18,7 +18,7 @@
 7. [Historial de versions](#7-historial-de-versions)
 
 ## 1. Objectiu i abast
-Aquest document descriu l'aplicació Flask que mostra el contingut de la base de dades `equipaments` ([document 03](03-bbdd-mysql.md)) carregada amb el CSV ([document 05](05-carrega-csv.md)). L'aplicació s'executa al contenidor `W-N06` de la DMZ, amb nginx al davant que la publica pels ports 80 i 443.
+Aquest document descriu l'aplicació Flask que mostra el contingut de la base de dades `equipaments` ([document 03](03-bbdd-mysql.md)) carregada amb el CSV ([document 03](03-bbdd-mysql.md#5-càrrega-del-csv)). L'aplicació s'executa al contenidor `W-N06` de la DMZ, amb nginx al davant que la publica pels ports 80 i 443.
 
 ## 2. Característiques
 | Element | Valor |
