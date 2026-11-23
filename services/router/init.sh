@@ -34,9 +34,12 @@ iptables -A FORWARD -i "$IF_DMZ" -o "$IF_NAT" -j ACCEPT
 iptables -A FORWARD -i "$IF_NAT" -o "$IF_DMZ" -p tcp -d 10.213.1.12 --dport 2222 -j ACCEPT
 # 5. DMZ -> BBDD (només MySQL): la web consulta la base de dades
 iptables -A FORWARD -i "$IF_DMZ" -o "$IF_INT" -p tcp -d 10.213.2.10 --dport 3306 -j ACCEPT
-# 6. Web (80 i 443): de fora cap a W-N06
+# 6. DMZ -> DNS (només el port 53): resolució de noms
+iptables -A FORWARD -i "$IF_DMZ" -o "$IF_INT" -p udp -d 10.213.2.53 --dport 53 -j ACCEPT
+iptables -A FORWARD -i "$IF_DMZ" -o "$IF_INT" -p tcp -d 10.213.2.53 --dport 53 -j ACCEPT
+# 7. Web (80 i 443): de fora cap a W-N06
 iptables -A FORWARD -i "$IF_NAT" -o "$IF_DMZ" -p tcp -d 10.213.1.10 -m multiport --dports 80,443 -j ACCEPT
-# 7. Tot el que no coincideix es registra (5 per minut) i es descarta per la política
+# 8. Tot el que no coincideix es registra (5 per minut) i es descarta per la política
 iptables -A FORWARD -m limit --limit 5/min -j LOG --log-prefix "FW-DROP: "
 
 # --- DNAT: el port 2222 publicat al router es reenvia al servidor SSH de la DMZ ---
