@@ -140,6 +140,29 @@ services:
       timeout: 3s
       retries: 10
 
+  # Servidor DHCP (intranet): dnsmasq. Reparteix 10.213.2.100-200 (docs/25).
+  dhcp:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "dnsmasq" } }
+    image: p00-dhcp
+    container_name: DHCP-${NCC:-N06}
+    hostname: DHCP-${NCC:-N06}
+    command: ["dnsmasq", "-k", "--log-facility=-", "--conf-file=/etc/dnsmasq.d/p00-dhcp.conf"]
+    cap_add: [NET_ADMIN, NET_RAW]
+    environment:
+      GATEWAY: 10.213.2.254
+      DNS_SERVER: 10.213.2.53
+    volumes:
+      - ./services/dhcp/init.sh:/opt/init.sh:ro
+    networks:
+      intranet: { ipv4_address: 10.213.2.67 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -x dnsmasq >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   # Servidor DNS (intranet): dnsmasq. Resol asix.local i reenvia la resta (docs/08).
   dns:
     <<: *base
