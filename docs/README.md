@@ -17,17 +17,20 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | [05 · Càrrega del CSV](05-carrega-csv.md) | Script de càrrega, origen de les dades, execució i verificació | Josep Pérez | 1.0 |
 | [06 · Aplicació web](06-aplicacio-web.md) | Aplicació Flask amb nginx (HTTPS) i autenticació (401), regles del router i proves | Josep Pérez | 1.2 |
 | [07 · Servidor SSH](07-servidor-ssh.md) | Instal·lació, configuració, seguretat i proves (port 2222, només clau pública) | Josep Pérez | 1.0 |
+| [08 · Servidor DNS](08-servidor-dns.md) | dnsmasq: noms d'`asix.local`, reenviament, regla DMZ → DNS i proves | Hèctor Martí i Josep Pérez | 1.0 |
 | [09 · Estudi previ: contenidors i base de dades](09-estudi-previ.md) | Contenidors o màquines virtuals, MySQL o MariaDB | Josep Pérez | 16/10/2026 |
 | [10 · Router i firewall](10-router-firewall.md) | Funcionament, interfícies i regles del router | Hèctor Martí | 1.0 |
 | [11 · Estudi previ: web, monitor i firewall](11-estudi-previ-web-monitor-firewall.md) | nginx o Apache, Uptime Kuma o Zabbix, iptables o nftables | Hèctor Martí | 26/10/2026 |
 | [14 · Control de versions](14-control-versions.md) | Git i GitHub: clau SSH, comandes, branques i pujada a producció | Josep Pérez | 1.1 |
 | [15 · Criteris de rendiment i disponibilitat](15-criteris-rendiment-disponibilitat.md) | Objectius mesurables i com es mesuren | Josep Pérez | 1.4 |
 | [16 · Pla del projecte](16-pla-projecte.md) | Fases, tasques, recursos, calendari i riscos | Josep Pérez | 1.3 |
+| [24 · Servidor FTP](24-servidor-ftp.md) | vsftpd: usuari `bchecker`, mode passiu, regles del router i proves | Hèctor Martí i Josep Pérez | 1.0 |
+| [25 · Servidor DHCP](25-servidor-dhcp.md) | dnsmasq: rang 10.213.2.100-200, opcions, limitacions i proves | Hèctor Martí i Josep Pérez | 1.0 |
+| [26 · Monitorització](26-monitoritzacio.md) | Uptime Kuma: sondes, disponibilitat i prova de contingència amb `B-N06` | Hèctor Martí i Josep Pérez | 1.0 |
 
 ## Documents previstos
 | Document | Sprint |
 |---|---|
-| DHCP, DNS, FTP i monitor de xarxa | 2 |
 | Client Windows | 2 |
 | Proves de rendiment i disponibilitat (resultats) | 2 i 3 |
 | Documentació final per al client i per a l'administrador | 3 |
