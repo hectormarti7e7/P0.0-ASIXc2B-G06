@@ -32,7 +32,7 @@ Aquest document defineix els criteris de rendiment i de disponibilitat de la inf
 ## 3. Criteris
 | ID | Criteri | Objectiu | Servei afectat |
 |---|---|---|---|
-| D1 | Disponibilitat dels serveis | 99 % o més a la finestra de mesura, amb una sonda cada 60 s | Web, BBDD, DNS, DHCP, FTP i SSH |
+| D1 | Disponibilitat dels serveis | 99 % o més a la finestra de mesura, amb una sonda cada 20 s | Web, BBDD, DNS, FTP i SSH (les cinc sondes del monitor) |
 | D2 | Temps de recuperació després d'aturar un contenidor amb `docker kill` | 60 s o menys | Tots els serveis |
 | D3 | Arrencada del router fins a l'estat `healthy` | 30 s o menys | Router |
 | D4 | Arrencada de la BBDD fins a l'estat `healthy`, en la primera arrencada | 120 s o menys | BBDD |
@@ -60,7 +60,7 @@ docker events --since 5m --until 0s --filter container=R-N06 --filter event=kill
 ```
 
 ### Disponibilitat (D1)
-Sondes d'Uptime Kuma per IP, una per servei i amb interval de 60 s. La disponibilitat és el percentatge que mostra el monitor a la finestra de mesura.
+Sondes d'Uptime Kuma, una per servei (web, FTP, SSH, MySQL i DNS) i amb interval de 20 s ([document 26](26-monitoritzacio.md)). El DHCP no té sonda. La disponibilitat és el percentatge que mostra el monitor a la finestra de mesura.
 
 ### Xarxa (P1, P2)
 P1 es mesura des del client Linux (màquina virtual d'Isard) i P2 des d'un contenidor de la intranet, perquè el client surt a Internet per l'equip dels serveis i no pel router ([document dels clients](04-clients-isard.md), apartat 5).
@@ -179,4 +179,4 @@ L'script `scripts/comprova.sh` executa part de les proves anteriors i mostra `PA
 | 1.2 | 17/11/2026 | Les mesures de xarxa es fan des del client Linux, que ara és una màquina virtual |
 | 1.3 | 18/11/2026 | P2 es mesura des de la BBDD, perquè el client surt a Internet per Isard |
 | 1.4 | 19/11/2026 | Primera mesura de P5 (càrrega del CSV) |
-| 2.0 | 23/11/2026 | S'hi integra el pla de proves (abans en un document a part) i s'actualitza l'estat de les sondes |
+| 2.0 | 23/11/2026 | S'hi integra el pla de proves (abans en un document a part), s'actualitza l'estat de les sondes i s'ajusta D1 a les sondes reals (cinc, cada 20 s) |
