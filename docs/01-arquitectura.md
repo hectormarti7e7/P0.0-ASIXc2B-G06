@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autors** | Josep Pérez, Hèctor Martí |
-| **Versió** | 1.4 · 22/11/2026 · Sprint 2 |
+| **Versió** | 1.5 · 23/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -17,7 +17,8 @@
 6. [Política del firewall](#6-política-del-firewall)
 7. [Principis de disseny](#7-principis-de-disseny)
 8. [Limitacions conegudes](#8-limitacions-conegudes)
-9. [Historial de versions](#9-historial-de-versions)
+9. [Resolució de problemes del router](#9-resolució-de-problemes-del-router)
+10. [Historial de versions](#10-historial-de-versions)
 
 ## 1. Objectiu i abast
 Aquest document descriu l'arquitectura de la infraestructura multicapa de la pràctica P0.0: quins components hi ha, com es connecten i per què s'han dissenyat així. Cada servei s'executa en un **contenidor Docker** en lloc d'una màquina virtual per servei. Els dos clients (Linux i Windows) són l'excepció: són màquines virtuals al laboratori d'Isard. La justificació tecnològica és a l'[estudi previ](09-estudi-previ.md).
@@ -116,6 +117,29 @@ Així, si un servei exposat a Internet es veiés compromès, no podria arribar a
 
 La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`) a la interfície de la xarxa NAT.
 
+### 6.4 Implementació del router
+El router `R-N06` és un contenidor Linux creat amb la imatge base i connectat a les tres xarxes. Fa tres feines: reenvia el trànsit (`net.ipv4.ip_forward=1`, definit a `docker-compose.yml`), fa NAT (`MASQUERADE` a la interfície de la xarxa NAT) i filtra amb `iptables` (política `FORWARD DROP`). És el *gateway* de tots els equips de la DMZ i de la intranet.
+
+El nom de la interfície (`eth0`, `eth1`...) no és fix: el script la detecta pel prefix de l'adreça IP de cada xarxa.
+
+| Fitxer | Contingut |
+|---|---|
+| `services/router/init.sh` | Ruta per defecte, política, regles de `iptables`, reenviament de ports i NAT |
+| `docker-compose.yml` | Servei `router`: `sysctls`, volum de `init.sh`, comprovació de salut i les tres xarxes |
+
+L'entrypoint de la imatge base executa `/opt/init.sh` en arrencar el contenidor. El `healthcheck` comprova que la regla `MASQUERADE` està aplicada, i la resta de serveis no arrenquen fins que el router és `healthy`.
+
+### 6.5 Validació del router
+Validació del disseny, sense desplegar:
+
+```bash
+bash -n services/router/init.sh
+docker compose config --quiet && echo "compose OK"
+docker compose build router
+```
+
+Resultat esperat: l'script no té errors de sintaxi, el `docker-compose.yml` és correcte i la imatge es construeix. L'estat `healthy` del router només es pot comprovar amb els contenidors en marxa (`docker compose ps`). Els resultats de les proves de xarxa i de seguretat del router són al [pla de proves](15-criteris-rendiment-disponibilitat.md#7-pla-de-proves).
+
 ## 7. Principis de disseny
 - **Segmentació:** els serveis exposats viuen a la DMZ i només poden iniciar connexions cap a la BBDD i el DNS.
 - **Punt únic de control:** tots els contenidors tenen el router com a *gateway*, de manera que el firewall veu tot el trànsit entre xarxes.
@@ -129,7 +153,16 @@ La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`)
 - Les regles de reenviament de l'equip dels serveis (`scripts/xarxa-clients.sh`) no sobreviuen a un reinici: cal tornar a executar el script després de `docker compose up`.
 - Les adreces 192.168.50.x són les del laboratori d'Isard; en un altre entorn cal canviar-les al script, al router i als clients.
 
-## 9. Historial de versions
+## 9. Resolució de problemes del router
+| Símptoma | Causa probable | Solució |
+|---|---|---|
+| El client de la intranet no surt a Internet | El router no ha acabat d'arrencar o no té `ip_forward` | `docker compose ps` (ha d'estar `healthy`) i `docker exec R-N06 sysctl net.ipv4.ip_forward` |
+| El router no passa a `healthy` | Les regles d'`init.sh` han fallat | `docker logs R-N06` |
+| Cap equip arriba a Internet | La ruta per defecte del router no és correcta | `docker exec R-N06 ip route` (ha de passar per `10.213.3.1`) |
+| Un paquet es bloqueja i no se sap per què | La política és `FORWARD DROP` | `docker logs R-N06` o `dmesg` mostren les entrades `FW-DROP:` |
+| Un port publicat no arriba al servei de la DMZ | Docker el publica per la pota de la DMZ en comptes de la de NAT | Comprovar `gw_priority: 1` a la xarxa `nat` i recrear el router (vegeu el [document 07](07-servidor-ssh.md), apartat 7) |
+
+## 10. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 22/10/2026 | Primera versió: components, xarxes i diagrama |
@@ -137,3 +170,4 @@ La sortida a Internet dels equips interns es fa amb emmascarament (`MASQUERADE`)
 | 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard connectades per itb 6 |
 | 1.3 | 18/11/2026 | Els clients arriben a la intranet per enrutament a través de l'equip dels serveis (en lloc d'`ipvlan`) |
 | 1.4 | 22/11/2026 | El servidor SSH escolta al port 2222 (no al 22) i el router hi fa el reenviament |
+| 1.5 | 23/11/2026 | S'hi integra el document del router i el firewall (abans el document 10, d'Hèctor Martí): implementació, validació i resolució de problemes |
