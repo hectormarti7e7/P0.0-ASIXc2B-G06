@@ -46,6 +46,8 @@ services:
       - "2222:2222"                  # SSH: el router el reenvia a S-N06 (DNAT a init.sh)
       - "80:80"                      # web (HTTP, redirigeix a HTTPS): cap a W-N06
       - "443:443"                    # web (HTTPS): cap a W-N06
+      - "21:21"                      # FTP (control): cap a F-N06
+      - "30000-30009:30000-30009"    # FTP (mode passiu): cap a F-N06
     volumes:
       - ./services/router/init.sh:/opt/init.sh:ro
     networks:
@@ -113,6 +115,30 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  # Servidor FTP (DMZ): vsftpd, només bchecker, mode passiu 30000-30009 (docs/24).
+  ftp:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "vsftpd" } }
+    image: p00-ftp
+    container_name: F-${NCC:-N06}
+    hostname: F-${NCC:-N06}
+    command: ["vsftpd", "/etc/vsftpd.conf"]
+    environment:
+      GATEWAY: 10.213.1.254
+      DNS_SERVER: 10.213.2.53
+      # Adreça per on entren els clients (l'equip dels serveis a itb 6); es pot canviar a .env
+      FTP_PASV_ADDRESS: ${FTP_PASV_ADDRESS:-192.168.50.22}
+    volumes:
+      - ./services/ftp/init.sh:/opt/init.sh:ro
+    networks:
+      dmz: { ipv4_address: 10.213.1.11 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/21'"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   # Servidor DNS (intranet): dnsmasq. Resol asix.local i reenvia la resta (docs/08).
   dns:
