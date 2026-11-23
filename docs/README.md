@@ -26,11 +26,11 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | [16 · Pla del projecte](16-pla-projecte.md) | Fases, tasques, recursos, calendari i riscos | Josep Pérez | 1.3 |
 | [24 · Servidor FTP](24-servidor-ftp.md) | vsftpd: usuari `bchecker`, mode passiu, regles del router i proves | Hèctor Martí i Josep Pérez | 1.0 |
 | [25 · Servidor DHCP](25-servidor-dhcp.md) | dnsmasq: rang 10.213.2.100-200, opcions, limitacions i proves | Hèctor Martí i Josep Pérez | 1.0 |
+| [26 · Monitorització](26-monitoritzacio.md) | Uptime Kuma: sondes, disponibilitat i prova de contingència amb `B-N06` | Hèctor Martí i Josep Pérez | 1.0 |
 
 ## Documents previstos
 | Document | Sprint |
 |---|---|
-| Monitor de xarxa | 2 |
 | Client Windows | 2 |
 | Proves de rendiment i disponibilitat (resultats) | 2 i 3 |
 | Documentació final per al client i per a l'administrador | 3 |

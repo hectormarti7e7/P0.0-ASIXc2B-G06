@@ -28,6 +28,7 @@ networks:
 
 volumes:
   db-data:                          # dades de MySQL (persistents)
+  monitor-data:                     # dades d'Uptime Kuma (sondes i historial)
 
 services:
   # Router: únic contenidor connectat a les tres xarxes. Fa el reenviament,
@@ -139,6 +140,28 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # Monitor de xarxa (intranet): Uptime Kuma, al port 3001 (docs/26).
+  monitor:
+    <<: *base
+    build: { context: ./services/monitor }
+    image: p00-monitor
+    container_name: MON-${NCC:-N06}
+    hostname: MON-${NCC:-N06}
+    environment:
+      GATEWAY: 10.213.2.254
+      DNS_SERVER: 10.213.2.53
+    volumes:
+      - monitor-data:/app/data
+    networks:
+      intranet: { ipv4_address: 10.213.2.20 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -o /dev/null http://127.0.0.1:3001/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
   # Servidor DHCP (intranet): dnsmasq. Reparteix 10.213.2.100-200 (docs/25).
   dhcp:
