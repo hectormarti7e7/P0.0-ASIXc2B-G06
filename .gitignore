@@ -2,3 +2,4 @@
 *.log
 *.deb
 data/*.csv
+.copia-neteja-docs/
