@@ -4,7 +4,7 @@ Versió 1.0 · Projecte P0.0 «Desplegament d'infraestructura» · Equip G06 (N0
 
 Aquest pla descriu les proves que cal fer sobre la infraestructura. La columna
 «Resultat» només s'omple amb el que s'ha executat de veritat; la resta queda
-com a **Pendent**. Els resultats ja obtinguts són als documents de cada servei i el resum, al document 22.
+com a **Pendent**. Els resultats ja obtinguts són als documents de cada servei.
 
 Convencions: `W-N06` web, `F-N06` FTP, `S-N06` SSH, `B-N06` base de dades,
 `DNS-N06`, `DHCP-N06`, `MON-N06` monitor, `R-N06` router. IP: W 10.213.1.10,
@@ -15,7 +15,7 @@ DHCP 10.213.2.67, router 10.213.2.254.
 
 | ID | Prova | Ordre o acció | Resultat esperat | Resultat |
 |---|---|---|---|---|
-| F1 | Contenidors en marxa | `docker compose ps` | Tots els serveis en estat `running` o `healthy` | Verificat (doc 22) |
+| F1 | Contenidors en marxa | `docker compose ps` | Tots els serveis en estat `running` o `healthy` | **Pendent** (es cobreix amb A1) |
 | F2 | Dades carregades | `SELECT COUNT(*)` a la taula carregada | 2.709 files | Verificat (doc 05) |
 | F3 | Web per HTTPS amb credencials | `curl -k -u usuari:contrasenya https://<host>/` | `200` | Verificat (doc 06) |
 | F4 | Redirecció HTTP a HTTPS | `curl -I http://<host>/` | `301` | Verificat (doc 06) |
@@ -24,6 +24,7 @@ DHCP 10.213.2.67, router 10.213.2.254.
 | F7 | Concessió DHCP | `nmap --script broadcast-dhcp-discover` i `udhcpc` | Cicle DISCOVER, OFFER, REQUEST, ACK | Verificat (doc 25) |
 | F8 | Client Linux arriba als serveis | Ping i SSH des de `PC-L-N06` | Respostes correctes | Verificat (docs 04 i 07) |
 | F9 | Client Windows arriba als serveis | Pings a 192.168.50.22, 10.213.2.1, 10.213.2.254 i 10.213.2.10 | Respostes correctes | **Pendent** (Hèctor Martí) |
+| F10 | Usuari `bchecker` als contenidors | `docker exec <contenidor> id bchecker` als vuit contenidors | L'usuari existeix i és del grup `sudo` | Verificat el 23/11/2026: `uid=1000` a set contenidors i `uid=1001` a `MON-N06`, tots amb el grup `sudo` |
 
 ## 2. Proves de seguretat
 
@@ -82,5 +83,5 @@ Les proves de rendiment d'altres parts, si n'hi ha, es troben al document 15.
 ## 7. Com s'anota un resultat
 
 1. Executar la prova i copiar la sortida real.
-2. Afegir-la al document del servei corresponent amb la data real i anotar-ho al document 22.
+2. Afegir-la al document del servei corresponent amb la data real i deixar-ne constància a ProofHub.
 3. Canviar «Pendent» per «Verificat» només en aquest moment.

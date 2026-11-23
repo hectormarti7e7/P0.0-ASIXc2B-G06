@@ -101,7 +101,7 @@ L'enunciat fixa 5 hores setmanals per persona, és a dir, 10 hores per sprint.
 
 ## 7. Seguiment
 - **ProofHub:** cada tasca té responsable, data de venciment i criteri de «feta»; s'hi registren les hores treballades.
-- **Diari de treball:** a cada sessió s'hi afegeix una nota amb el que s'ha fet i el que falla.
+- **Diari de treball:** es porta a ProofHub, amb un comentari a cada tasca de cada sessió (què s'ha fet i què falla) i les hores treballades.
 - **GitHub:** cada tasca de ProofHub té la seva branca i el seu Pull Request, i cada commit recull una sola part del treball.
 - **Etiquetes:** el tancament de cada sprint es marca amb una etiqueta de Git (`sprint1`, `sprint2`...).
 

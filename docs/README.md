@@ -25,7 +25,6 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | [16 · Pla del projecte](16-pla-projecte.md) | Fases, tasques, recursos, calendari i riscos | Josep Pérez | 1.3 |
 | [17 · Prevenció de riscos](17-prevencio-riscos.md) | Riscos tècnics i laborals, amb la prevenció i l'estat de cadascun | Josep Pérez | 1.0 |
 | [20 · Pla de proves](20-pla-proves.md) | Proves funcionals, de seguretat, de contingència, de monitorització i d'automatització, amb el resultat | Josep Pérez | 1.0 |
-| [22 · Seguiment i evidències del sprint 2](22-seguiment-sprint2.md) | Estat de les tasques i dels requisits de l'enunciat, integració al repositori i pendent | Josep Pérez i Hèctor Martí | 1.1 |
 
 ## Documents previstos
 | Document | Sprint |
