@@ -11,7 +11,7 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | Document | Contingut | Autor | Versió |
 |---|---|---|---|
 | [01 · Arquitectura](01-arquitectura.md) | Components, xarxes, adreçament IP i política del firewall | Josep Pérez i Hèctor Martí | 1.4 |
-| [02 · Manual de desplegament (client)](02-desplegament-client.md) | Requisits, imatge base, xarxes i comprovació | Josep Pérez | 1.2 |
+| [02 · Manual d'instal·lació i administració](02-desplegament-client.md) | Requisits, imatge base, xarxes, serveis, desplegament, operació, manteniment, incidències i comprovació | Josep Pérez | 2.0 |
 | [03 · Base de dades MySQL](03-bbdd-mysql.md) | Servidor MySQL, base de dades `equipaments`, usuari `bchecker` i proves | Josep Pérez | 1.0 |
 | [04 · Clients a Isard (itb 6)](04-clients-isard.md) | Màquines virtuals dels clients, connexió amb la intranet i proves | Josep Pérez | 1.2 |
 | [05 · Càrrega del CSV](05-carrega-csv.md) | Script de càrrega, origen de les dades, execució i verificació | Josep Pérez | 1.0 |
@@ -23,6 +23,9 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | [14 · Control de versions](14-control-versions.md) | Git i GitHub: clau SSH, comandes, branques i pujada a producció | Josep Pérez | 1.1 |
 | [15 · Criteris de rendiment i disponibilitat](15-criteris-rendiment-disponibilitat.md) | Objectius mesurables i com es mesuren | Josep Pérez | 1.4 |
 | [16 · Pla del projecte](16-pla-projecte.md) | Fases, tasques, recursos, calendari i riscos | Josep Pérez | 1.3 |
+| [17 · Prevenció de riscos](17-prevencio-riscos.md) | Riscos tècnics i laborals, amb la prevenció i l'estat de cadascun | Josep Pérez | 1.0 |
+| [20 · Pla de proves](20-pla-proves.md) | Proves funcionals, de seguretat, de contingència, de monitorització i d'automatització, amb el resultat | Josep Pérez | 1.0 |
+| [22 · Seguiment i evidències del sprint 2](22-seguiment-sprint2.md) | Estat de les tasques i dels requisits de l'enunciat, integració al repositori i pendent | Josep Pérez i Hèctor Martí | 1.1 |
 
 ## Documents previstos
 | Document | Sprint |
