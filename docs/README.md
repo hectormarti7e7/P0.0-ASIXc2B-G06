@@ -22,8 +22,7 @@ Tots els documents són en Markdown i es versionen amb el codi. La numeració de
 | [11 · Estudi previ: web, monitor i firewall](11-estudi-previ-web-monitor-firewall.md) | nginx o Apache, Uptime Kuma o Zabbix, iptables o nftables | Hèctor Martí | 26/10/2026 |
 | [14 · Control de versions](14-control-versions.md) | Git i GitHub: clau SSH, comandes, branques i pujada a producció | Josep Pérez | 1.1 |
 | [15 · Criteris de rendiment i disponibilitat](15-criteris-rendiment-disponibilitat.md) | Objectius mesurables i com es mesuren | Josep Pérez | 1.4 |
-| [16 · Pla del projecte](16-pla-projecte.md) | Fases, tasques, recursos, calendari i riscos | Josep Pérez | 1.3 |
-| [17 · Prevenció de riscos](17-prevencio-riscos.md) | Riscos tècnics i laborals, amb la prevenció i l'estat de cadascun | Josep Pérez | 1.0 |
+| [16 · Pla del projecte i prevenció de riscos](16-pla-projecte.md) | Fases, tasques, recursos, calendari, riscos tècnics i riscos laborals | Josep Pérez | 1.4 |
 | [20 · Pla de proves](20-pla-proves.md) | Proves funcionals, de seguretat, de contingència, de monitorització i d'automatització, amb el resultat | Josep Pérez | 1.0 |
 
 ## Documents previstos

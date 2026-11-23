@@ -200,7 +200,7 @@ docker compose ps
 | El client Linux no rep DHCP | La difusió no travessa `itb 6` | Limitació; vegeu el [document 25](25-servidor-dhcp.md) |
 
 ## 14. Limitacions conegudes
-FTP sense TLS, DHCP que no arriba als clients de `itb 6`, regles de l'host no persistents, certificats autosignats, sense notificacions al monitor i `bchecker` amb tots els privilegis a la BBDD. Vegeu el [document 17](17-prevencio-riscos.md).
+FTP sense TLS, DHCP que no arriba als clients de `itb 6`, regles de l'host no persistents, certificats autosignats, sense notificacions al monitor i `bchecker` amb tots els privilegis a la BBDD. Vegeu els riscos del [pla del projecte](16-pla-projecte.md#6-riscos-tècnics).
 
 ## 15. Historial de versions
 | Versió | Data | Canvis |
