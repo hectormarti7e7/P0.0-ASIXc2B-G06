@@ -28,6 +28,7 @@ networks:
 
 volumes:
   db-data:                          # dades de MySQL (persistents)
+  monitor-data:                     # dades d'Uptime Kuma (sondes i historial)
 
 services:
   # Router: únic contenidor connectat a les tres xarxes. Fa el reenviament,
@@ -46,6 +47,8 @@ services:
       - "2222:2222"                  # SSH: el router el reenvia a S-N06 (DNAT a init.sh)
       - "80:80"                      # web (HTTP, redirigeix a HTTPS): cap a W-N06
       - "443:443"                    # web (HTTPS): cap a W-N06
+      - "21:21"                      # FTP (control): cap a F-N06
+      - "30000-30009:30000-30009"    # FTP (mode passiu): cap a F-N06
     volumes:
       - ./services/router/init.sh:/opt/init.sh:ro
     networks:
@@ -68,6 +71,7 @@ services:
     command: ["sleep", "infinity"]
     environment:
       GATEWAY: 10.213.1.254
+      DNS_SERVER: 10.213.2.53
     volumes:
       - ./services/ssh/init.sh:/opt/init.sh:ro
       - ./services/ssh/authorized_keys:/opt/authorized_keys:ro
@@ -90,6 +94,7 @@ services:
     command: ["gunicorn", "--chdir", "/opt/app", "-b", "0.0.0.0:5000", "-w", "2", "app:app"]
     environment:
       GATEWAY: 10.213.1.254
+      DNS_SERVER: 10.213.2.53
       DB_HOST: 10.213.2.10
       DB_NAME: equipaments
       DB_USER: bchecker
@@ -112,7 +117,97 @@ services:
       retries: 10
       start_period: 10s
 
-  # Servidor de base de dades (intranet). El CSV es carrega amb /opt/load_csv.py (docs/05).
+  # Servidor FTP (DMZ): vsftpd, només bchecker, mode passiu 30000-30009 (docs/24).
+  ftp:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "vsftpd" } }
+    image: p00-ftp
+    container_name: F-${NCC:-N06}
+    hostname: F-${NCC:-N06}
+    command: ["vsftpd", "/etc/vsftpd.conf"]
+    environment:
+      GATEWAY: 10.213.1.254
+      DNS_SERVER: 10.213.2.53
+      # Adreça per on entren els clients (l'equip dels serveis a itb 6); es pot canviar a .env
+      FTP_PASV_ADDRESS: ${FTP_PASV_ADDRESS:-192.168.50.22}
+    volumes:
+      - ./services/ftp/init.sh:/opt/init.sh:ro
+    networks:
+      dmz: { ipv4_address: 10.213.1.11 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/21'"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Monitor de xarxa (intranet): Uptime Kuma, al port 3001 (docs/26).
+  monitor:
+    <<: *base
+    build: { context: ./services/monitor }
+    image: p00-monitor
+    container_name: MON-${NCC:-N06}
+    hostname: MON-${NCC:-N06}
+    environment:
+      GATEWAY: 10.213.2.254
+      DNS_SERVER: 10.213.2.53
+    volumes:
+      - monitor-data:/app/data
+    networks:
+      intranet: { ipv4_address: 10.213.2.20 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -o /dev/null http://127.0.0.1:3001/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # Servidor DHCP (intranet): dnsmasq. Reparteix 10.213.2.100-200 (docs/25).
+  dhcp:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "dnsmasq" } }
+    image: p00-dhcp
+    container_name: DHCP-${NCC:-N06}
+    hostname: DHCP-${NCC:-N06}
+    command: ["dnsmasq", "-k", "--log-facility=-", "--conf-file=/etc/dnsmasq.d/p00-dhcp.conf"]
+    cap_add: [NET_ADMIN, NET_RAW]
+    environment:
+      GATEWAY: 10.213.2.254
+      DNS_SERVER: 10.213.2.53
+    volumes:
+      - ./services/dhcp/init.sh:/opt/init.sh:ro
+    networks:
+      intranet: { ipv4_address: 10.213.2.67 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -x dnsmasq >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Servidor DNS (intranet): dnsmasq. Resol asix.local i reenvia la resta (docs/08).
+  dns:
+    <<: *base
+    build: { context: ./images/base, args: { PKGS: "dnsmasq" } }
+    image: p00-dns
+    container_name: DNS-${NCC:-N06}
+    hostname: DNS-${NCC:-N06}
+    command: ["dnsmasq", "-k", "--log-facility=-", "--conf-file=/etc/dnsmasq.d/p00.conf"]
+    environment:
+      GATEWAY: 10.213.2.254
+    volumes:
+      - ./services/dns/init.sh:/opt/init.sh:ro
+    networks:
+      intranet: { ipv4_address: 10.213.2.53 }
+    depends_on: { router: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "dig +short +time=2 +tries=1 @127.0.0.1 b-n06.asix.local | grep -q 10.213.2.10"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Servidor de base de dades (intranet). El CSV es carrega amb /opt/load_csv.py (docs/03).
   db:
     <<: *base
     build: { context: ./images/base, args: { PKGS: "mysql-server mysql-client python3 python3-pymysql" } }
@@ -122,6 +217,7 @@ services:
     command: ["mysqld", "--user=mysql", "--bind-address=0.0.0.0", "--skip-name-resolve"]
     environment:
       GATEWAY: 10.213.2.254
+      DNS_SERVER: 10.213.2.53
       DB_NAME: equipaments
       DB_USER: bchecker
       DB_PASS: bchecker121

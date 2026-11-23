@@ -34,9 +34,14 @@ iptables -A FORWARD -i "$IF_DMZ" -o "$IF_NAT" -j ACCEPT
 iptables -A FORWARD -i "$IF_NAT" -o "$IF_DMZ" -p tcp -d 10.213.1.12 --dport 2222 -j ACCEPT
 # 5. DMZ -> BBDD (només MySQL): la web consulta la base de dades
 iptables -A FORWARD -i "$IF_DMZ" -o "$IF_INT" -p tcp -d 10.213.2.10 --dport 3306 -j ACCEPT
-# 6. Web (80 i 443): de fora cap a W-N06
+# 6. DMZ -> DNS (només el port 53): resolució de noms
+iptables -A FORWARD -i "$IF_DMZ" -o "$IF_INT" -p udp -d 10.213.2.53 --dport 53 -j ACCEPT
+iptables -A FORWARD -i "$IF_DMZ" -o "$IF_INT" -p tcp -d 10.213.2.53 --dport 53 -j ACCEPT
+# 7. Web (80 i 443): de fora cap a W-N06
 iptables -A FORWARD -i "$IF_NAT" -o "$IF_DMZ" -p tcp -d 10.213.1.10 -m multiport --dports 80,443 -j ACCEPT
-# 7. Tot el que no coincideix es registra (5 per minut) i es descarta per la política
+# 8. FTP (21 i mode passiu 30000-30009): de fora cap a F-N06
+iptables -A FORWARD -i "$IF_NAT" -o "$IF_DMZ" -p tcp -d 10.213.1.11 -m multiport --dports 21,30000:30009 -j ACCEPT
+# 9. Tot el que no coincideix es registra (5 per minut) i es descarta per la política
 iptables -A FORWARD -m limit --limit 5/min -j LOG --log-prefix "FW-DROP: "
 
 # --- DNAT: el port 2222 publicat al router es reenvia al servidor SSH de la DMZ ---
@@ -45,9 +50,13 @@ iptables -t nat -A PREROUTING -i "$IF_NAT" -p tcp --dport 2222 -j DNAT --to-dest
 iptables -t nat -A PREROUTING -i "$IF_NAT" -p tcp --dport 80  -j DNAT --to-destination 10.213.1.10:80
 iptables -t nat -A PREROUTING -i "$IF_NAT" -p tcp --dport 443 -j DNAT --to-destination 10.213.1.10:443
 
-# El servidor SSH i la web responen sempre al router (si no, la resposta sortiria per una altra interfície)
+iptables -t nat -A PREROUTING -i "$IF_NAT" -p tcp --dport 21 -j DNAT --to-destination 10.213.1.11:21
+iptables -t nat -A PREROUTING -i "$IF_NAT" -p tcp --dport 30000:30009 -j DNAT --to-destination 10.213.1.11
+
+# El servidor SSH, la web i el FTP responen sempre al router (si no, la resposta sortiria per una altra interfície)
 iptables -t nat -A POSTROUTING -o "$IF_DMZ" -p tcp -d 10.213.1.12 --dport 2222 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o "$IF_DMZ" -p tcp -d 10.213.1.10 -m multiport --dports 80,443 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o "$IF_DMZ" -p tcp -d 10.213.1.11 -m multiport --dports 21,30000:30009 -j MASQUERADE
 
 # --- NAT: sortida a Internet amb l'adreça del router ---
 iptables -t nat -A POSTROUTING -o "$IF_NAT" -j MASQUERADE

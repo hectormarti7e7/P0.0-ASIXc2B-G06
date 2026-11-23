@@ -24,7 +24,7 @@
 Els criteris de comparació es deriven de tres fonts:
  
 - Els requisits de l'enunciat i de la rúbrica P0.0: seguretat, virtualització, xarxes, rendiment i disponibilitat.
-- El que necessita realment el prototip: un contenidor per servei, tot en una sola VM i desplegament amb `./deploy.sh up`.
+- El que necessita realment el prototip: un contenidor per servei, tot en una sola VM i desplegament amb `docker compose up -d --build`.
 - Criteris estratègics habituals en una selecció de tecnologia: llicència, govern del projecte, cicle de vida, quota de mercat i risc de dependència d'un proveïdor.
 ### 1.2 Necessitats del projecte i oportunitats
  
@@ -64,7 +64,7 @@ Les dades numèriques i els fets verificables (quotes, dates, llicències, versi
 | **Contingut dinàmic** | No incrusta intèrprets: delega a una aplicació externa via `proxy_pass`/FastCGI | Pot incrustar mòduls (p. ex. `mod_wsgi`) o fer de proxy |
 | **Encaix amb Flask + gunicorn** | gunicorn no s'ha d'exposar directament a Internet; nginx fa de proxy invers, serveix estàtics i acaba TLS | Possible amb `mod_proxy`; funcionalment equivalent, però més pesat en un contenidor |
 | **Cost de llicència** | 0 € (versió oberta) | 0 € |
-| **Autenticació bàsica + HTTPS** | Sí (usat al prototip i validat per `tests/check.sh`) | Sí |
+| **Autenticació bàsica + HTTPS** | Sí (usat al prototip i validat amb les proves F3, F4 i S5 del [pla de proves](15-criteris-rendiment-disponibilitat.md#7-pla-de-proves)) | Sí |
  
 ### 2.3 Empreses i projectes darrere de cada tecnologia
  
@@ -106,7 +106,7 @@ Apache està al **21,4 %** el 19/10/2026. Com a context històric, el 2010 Apach
 **Quan triaria Apache:** si calgués `.htaccess` per a aplicacions de tercers (p. ex. un CMS en allotjament compartit) o integració amb mòduls específics. No és el cas.
  
 ### 2.7 Limitacions de l'estudi
-- No s'han mesurat rendiments propis (peticions/s). Es farà amb `ab` al sprint 2, dins els criteris de rendiment (RA2).
+- No s'han mesurat rendiments propis (peticions/s). Es farà amb `ab` al sprint 3, dins del criteri P3 del [document 15](15-criteris-rendiment-disponibilitat.md) (RA2).
 - Les afirmacions de rendiment relatiu entre nginx i Apache són criteri general, no un resultat.
 - La versió de nginx del contenidor no s'ha verificat en aquesta redacció.
 ---
@@ -114,7 +114,7 @@ Apache està al **21,4 %** el 19/10/2026. Com a context històric, el 2010 Apach
 ## 3. Monitoratge: Uptime Kuma vs Zabbix
  
 ### 3.1 Context al projecte
-`MON-N06` (10.213.2.20, Intranet) executa **Uptime Kuma v1**, accessible a `http://localhost:3001`. Les sondes es configuren **per IP** perquè el monitor no resolia noms (problema documentat a l'informe de context, §8). Al sprint 2 hi ha d'haver sondes i mètriques de disponibilitat (RA2).
+`MON-N06` (10.213.2.20, Intranet) executa **Uptime Kuma v1**, accessible a `http://10.213.2.20:3001` des de la intranet i des dels clients. Les sondes (web, FTP, SSH, MySQL i DNS) es creen amb `services/monitor/configura_sondes.py` i es descriuen al [document 26](26-monitoritzacio.md), que també recull la prova de caiguda i recuperació de la base de dades (RA2).
  
 ### 3.2 Comparativa per criteris
  
@@ -154,7 +154,7 @@ Apache està al **21,4 %** el 19/10/2026. Com a context històric, el 2010 Apach
 **Es manté Uptime Kuma per a P0.0**, per quatre raons:
  
 1. **Encaix amb RA2:** el criteri de rendiment i disponibilitat s'ha de definir amb **mètriques mesurables**; *uptime* i temps de resposta per sonda són justament el que mesura Kuma. El temps de recuperació després de `docker kill` es llegirà directament dels seus gràfics.
-2. **Cost operatiu mínim:** un sol contenidor amb un volum, coherent amb el principi «un contenidor per servei» i amb `./deploy.sh up`.
+2. **Cost operatiu mínim:** un sol contenidor amb un volum, coherent amb el principi «un contenidor per servei» i amb `docker compose up -d --build`.
 3. **Llicència sense restriccions:** MIT.
 4. **Proporcionalitat:** muntar Zabbix per vigilar 9 contenidors seria sobredimensionar el projecte (valoració no mesurada).
 **Via d'evolució:** si al sprint 3 es vol mesurar consum per servei i generar alertes per llindars de recursos, **Zabbix 7.0 LTS** és el candidat natural (agent per a Linux i Windows, suport fins al 2029). A curt termini, Kuma cobreix la disponibilitat i `docker stats` el consum.
