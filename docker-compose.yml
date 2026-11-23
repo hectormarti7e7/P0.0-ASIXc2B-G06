@@ -207,7 +207,7 @@ services:
       timeout: 5s
       retries: 10
 
-  # Servidor de base de dades (intranet). El CSV es carrega amb /opt/load_csv.py (docs/05).
+  # Servidor de base de dades (intranet). El CSV es carrega amb /opt/load_csv.py (docs/03).
   db:
     <<: *base
     build: { context: ./images/base, args: { PKGS: "mysql-server mysql-client python3 python3-pymysql" } }
