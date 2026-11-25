@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autors** | Hèctor Martí, Josep Pérez |
-| **Versió** | 1.0 · 22/11/2026 · Sprint 2 |
+| **Versió** | 1.1 · 25/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -64,6 +64,26 @@ En mode passiu, el servidor diu al client a quina adreça i port ha de connectar
 
 **Limitació: no hi ha xifratge.** FTP envia l'usuari i la contrasenya en text clar. S'ha provat d'activar TLS (`ssl_enable=YES`), però en aquesta imatge `vsftpd` es tancava sense missatge d'error en activar-lo, i no s'ha pogut resoldre en el temps disponible. Per això el servei funciona amb FTP normal. Per a una administració segura es recomana usar el servidor SSH ([document 07](07-servidor-ssh.md)); una millora futura és activar FTPS o substituir FTP per SFTP.
 
+**Limitació: `vsftpd` es tanca de tant en tant (codi 139).** El `vsftpd` d'aquesta imatge (Ubuntu 22.04) acaba amb un *segmentation fault* quan rep connexions seguides. `dmesg` mostra `segfault at 0` sempre a la mateixa posició del programa, i Docker el torna a arrencar sol (`restart: unless-stopped`). El 25/11/2026 el comptador de reinicis (`docker inspect -f '{{.RestartCount}}' F-N06`) marcava més de 250 en uns 3 dies, aproximadament un cada 18 minuts. Entre la caiguda i la nova arrencada passen uns 0,2 a 0,5 s; després `vsftpd` triga uns segons a acceptar connexions.
+
+Es va provar d'arreglar-ho en un contenidor apart, amb fins a 60 connexions seguides (una cada 0,5 s), i no es va aconseguir:
+
+| Prova | Resultat |
+|---|---|
+| Configuració actual | Tancament (codi 139) |
+| `seccomp_sandbox=YES` | Tancament |
+| `isolate=NO` i `isolate_network=NO` | Tancament |
+| `max_per_ip=0` i `max_clients=0` | Tancament |
+| Sense `connect_from_port_20` | Tancament |
+| Sense `chroot_local_user` ni `secure_chroot_dir` | Tancament |
+| Sense les opcions `pasv_*` | Tancament |
+| Sense el registre (`xferlog`, `vsftpd_log_file`, `log_ftp_protocol`) | Tancament |
+| `one_process_model=YES` | Sobreviu, però el servidor respon `500 OOPS: security: 'one_process_model' is anonymous only` i no es pot fer servir amb `bchecker` |
+
+També es va comprovar que no és només el patró de connectar i tancar sense dir res: unes connexions que llegien la salutació i enviaven `QUIT` (fins a 200, una cada 0,5 s) el van tancar a la 29. Per tant, la causa sembla un error del programa en aquest entorn, i no una opció de configuració; no s'ha investigat més.
+
+**Mitigació.** El `healthcheck` del contenidor feia una connexió cada 5 s i ara en fa una cada 30 s (`docker-compose.yml`), de manera que n'hi ha menys. La sonda del monitor ([document 26](26-monitoritzacio.md)) continua fent una connexió cada 20 s. S'espera que els tancaments siguin menys freqüents; no s'ha mesurat encara. Si en una versió futura es vol eliminar el problema, l'alternativa és substituir `vsftpd` per un altre servidor FTP, com `proftpd`.
+
 ## 5. Comprovacions
 Es fan des del client Linux (`PC-L-N06`) contra l'equip dels serveis (`192.168.50.22`), el 22/11/2026. S'usa `curl` amb `--user bchecker:bchecker121`.
 
@@ -86,8 +106,10 @@ Les proves 1 a 3 utilitzen el mode passiu pels ports 30000-30009: si el rang no 
 | El contenidor es reinicia sense missatge | `vsftpd` es tanca per una opció que no accepta (a la prova, `ssl_enable=YES`) | Trobar-la treient opcions de `/etc/vsftpd.conf` d'una en una |
 | `500 OOPS: vsftpd: refusing to run with writable root inside chroot()` | L'arrel de `/srv/ftp` és escrivible | `chmod 755` i propietari `root` a `/srv/ftp` |
 | `Connection refused` al port 21 | El servei no s'ha arrencat o el router no ha publicat el port | `docker compose ps` i `docker logs F-N06` |
+| El contenidor es reinicia i `dmesg` mostra `vsftpd ... segfault` | Fallada coneguda de `vsftpd` amb connexions seguides (apartat 4) | Es recupera sol; el recompte és a `docker inspect -f '{{.RestartCount}}' F-N06` |
 
 ## 7. Historial de versions
 | Versió | Data | Canvis |
 |---|---|---|
 | 1.0 | 22/11/2026 | Primera versió: vsftpd, mode passiu, regles del router i proves |
+| 1.1 | 25/11/2026 | Limitació documentada: `vsftpd` es tanca (codi 139) amb connexions seguides; `healthcheck` cada 30 s |
