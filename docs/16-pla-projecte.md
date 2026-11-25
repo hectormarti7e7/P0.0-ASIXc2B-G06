@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.4 · 23/11/2026 · Sprint 2 |
+| **Versió** | 1.5 · 25/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -113,8 +113,9 @@ La probabilitat i l'impacte són valoracions qualitatives de l'equip (Baixa, Mit
 | T21 | Barreja de *backends* iptables i nftables a la mateixa màquina | Baixa | Mitjà | Mantenir iptables al router i no activar el *backend* nftables experimental de Docker ([estudi previ 11](11-estudi-previ-web-monitor-firewall.md), apartat 4) | Definit |
 | T22 | Una actualització de MySQL a la 8.4 desactiva `mysql_native_password` | Baixa | Mitjà | Fixar MySQL 8.0 i revisar els usuaris abans d'actualitzar ([estudi previ 09](09-estudi-previ.md), apartat 9.3) | Definit |
 | T23 | Conflictes de Git entre els dos integrants | Mitjana | Baix | Una branca de vida curta per cada tasca de ProofHub i Pull Request cap a `main` ([control de versions](14-control-versions.md)) | Aplicat (PR #3 a #11) |
+| T24 | El `vsftpd` d'Ubuntu 22.04 es tanca (codi 139) amb connexions seguides; Docker el reinicia (més de 250 reinicis en uns 3 dies) | Alta | Baix | `restart: unless-stopped` el recupera en pocs segons; `healthcheck` cada 30 s per tenir menys connexions; la causa no s'ha pogut arreglar per configuració | Documentat; vegeu doc [24](24-servidor-ftp.md) |
 
-Els riscos T2, T6, T7, T9, T13, T14 i T15 són limitacions conegudes que no tenen mitigació automàtica; es mencionen a la defensa. Els riscos s'han de revisar al final de cada sprint i s'ha d'afegir qualsevol incidència nova.
+Els riscos T2, T6, T7, T9, T13, T14, T15 i T24 són limitacions conegudes que no tenen mitigació automàtica; es mencionen a la defensa. Els riscos s'han de revisar al final de cada sprint i s'ha d'afegir qualsevol incidència nova.
 
 ## 7. Riscos laborals
 El treball és de tipus ofimàtic davant de pantalla (equips de visualització de dades), sota la Llei 31/1995 de Prevenció de Riscos Laborals i el Reial decret 488/1997.
@@ -143,3 +144,4 @@ Les mesures dels riscos laborals són recomanacions generals; no hi ha evidènci
 | 1.2 | 17/11/2026 | Els clients passen a ser màquines virtuals a Isard (itb 6) i nou risc del filtre de MAC |
 | 1.3 | 18/11/2026 | Els clients arriben a la intranet per enrutament; riscos actualitzats |
 | 1.4 | 23/11/2026 | S'hi integra la prevenció de riscos (abans en un document a part): una sola taula de riscos tècnics i els riscos laborals; el diari de treball passa a ProofHub |
+| 1.5 | 25/11/2026 | Nou risc T24: tancaments de `vsftpd` (codi 139) |
