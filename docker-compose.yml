@@ -136,10 +136,14 @@ services:
       dmz: { ipv4_address: 10.213.1.11 }
     depends_on: { router: { condition: service_healthy } }
     healthcheck:
+      # Interval llarg a propòsit: el vsftpd es tanca (codi 139) amb connexions seguides, i així
+      # n'hi ha menys (docs/24, apartat 4). A l'arrencada es comprova cada 2 s.
       test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/21'"]
-      interval: 5s
+      interval: 30s
       timeout: 3s
-      retries: 10
+      retries: 3
+      start_period: 15s
+      start_interval: 2s
 
   # Monitor de xarxa (intranet): Uptime Kuma, al port 3001 (docs/26).
   monitor:
