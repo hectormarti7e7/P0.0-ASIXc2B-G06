@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 2.0 · 23/11/2026 · Sprint 2 |
+| **Versió** | 2.1 · 26/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -183,7 +183,7 @@ Resultat observat el 19/11/2026 (descàrrega, conversió i inserció de les 2.70
   ```bash
   docker exec B-N06 mysqldump -ubchecker -pbchecker121 equipaments equipaments_educacio > copia-equipaments.sql
   ```
-  La restauració d'aquesta còpia no s'ha provat (vegeu la prova C4 del [pla de proves](15-criteris-rendiment-disponibilitat.md#7-pla-de-proves)).
+  La restauració es va provar el 26/11/2026 en una taula temporal i va recuperar les 2.709 files (prova C4 del [pla de proves](15-criteris-rendiment-disponibilitat.md#7-pla-de-proves)). L'usuari `bchecker` no té el privilegi `PROCESS`, i `mysqldump` ho avisa amb un error en bolcar els espais de taules; la còpia es fa igualment. L'opció `--no-tablespaces` evita l'avís (no s'ha provat).
 - Les credencials són les de la pràctica (`bchecker`, imposades per l'enunciat) i es llegeixen de les variables d'entorn del contenidor, no del codi del script.
 - El script depèn d'Open Data BCN: si canvia el format o l'adreça del CSV, la càrrega pot fallar o crear columnes diferents. Per això les columnes es creen a partir de la capçalera.
 - Les consultes de l'aplicació web han de fer servir els noms de columna normalitzats (apartat 5.3).
@@ -210,3 +210,4 @@ Resultat observat el 19/11/2026 (descàrrega, conversió i inserció de les 2.70
 | 1.0 | 16/11/2026 | Primera versió: servidor MySQL, base de dades `equipaments` i usuari `bchecker` |
 | 1.1 | 19/11/2026 | Script de càrrega del CSV, verificació (2.709 files) i problemes trobats (abans, document 05) |
 | 2.0 | 23/11/2026 | S'hi integra la càrrega del CSV (abans en un document a part) i s'actualitza l'accés des de la DMZ |
+| 2.1 | 26/11/2026 | Restauració de la còpia provada (C4) i avís de `mysqldump` pel privilegi `PROCESS` |
