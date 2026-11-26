@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 2.0 · 23/11/2026 · Sprint 2 |
+| **Versió** | 2.1 · 26/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -95,15 +95,22 @@ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}'
 | Script de càrrega del CSV (`load_csv.py`), mesurat (P5) | Fet |
 | Sondes d'Uptime Kuma per servei | Fet ([document 26](26-monitoritzacio.md)) |
 | Prova de caiguda i recuperació de la BBDD (`docker stop` i `docker start`) | Fet (23/11/2026, [document 26](26-monitoritzacio.md)) |
-| Proves de càrrega amb `ab` i prova de recuperació amb `docker kill` (D2) | Pendent (sprint 3) |
+| Prova de recuperació d'un contenidor (D2) | Fet (26/11/2026, apartat 6). Amb `docker kill` el contenidor no es reinicia, perquè Docker ho tracta com una parada manual |
+| Proves de càrrega amb `ab` (P3) | Pendent (sprint 3) |
 
 ## 6. Registre de mesures
-Es completa amb cada mesura feta. Fins ara només s'han mesurat D4 i P5; la resta de criteris estan pendents de mesurar.
+Es completa amb cada mesura feta. S'han mesurat D2, D3, D4, P2, P4, P5, R1 i R2; queden pendents D1, P1 i P3.
 
 | Data | Criteri | Valor mesurat | Objectiu | Compleix | Observacions |
 |---|---|---|---|---|---|
 | 16/11/2026 | D4 | 6,8 s | 120 s o menys | Sí | `time docker compose up -d --wait db` amb volum nou, imatge ja construïda i router en marxa |
 | 19/11/2026 | P5 | 1,0 s (2.709 files) | 60 s o menys i totes les files | Sí | `time docker exec B-N06 python3 /opt/load_csv.py`; una sola mesura ([càrrega del CSV](03-bbdd-mysql.md#5-càrrega-del-csv)) |
+| 25/11/2026 | D3 | 15,1 s | 30 s o menys | Sí | `time` de `docker restart R-N06` fins que l'estat és `healthy`; una sola mesura (`img/evidencia-d3-arrencada-router.png`) |
+| 26/11/2026 | D2 | 1 s | 60 s o menys | Sí | `sudo kill -9` del procés principal de `S-N06` i espera que `sshd` torni a respondre; el valor inclou 1 s d'espera fixa de l'ordre. Amb `docker kill` no es reinicia |
+| 26/11/2026 | P2 | 20 de 20 paquets, 1,17 ms de mitjana | Ruta pel router i 0 % de paquets perduts | Sí | `docker exec B-N06 ping -c 20 1.1.1.1`; ruta `default via 10.213.2.254` |
+| 26/11/2026 | P4 | 0,085 s (2.709 files) | 1 s o menys | Sí | `time docker exec B-N06 mysql ... "SELECT COUNT(*) ..."`; inclou el cost del `docker exec` |
+| 26/11/2026 | R1 | 464,6 MiB (`B-N06`); la resta, 215,5 MiB o menys | 512 MiB o menys (BBDD, 1 GiB) | Sí | `docker stats --no-stream`, 3 minuts després d'arrencar l'equip |
+| 26/11/2026 | R2 | `B-N06` 5,5 %, `DNS-N06` 5,2 %, `R-N06` 4,6 %, `S-N06` 4,1 %; la resta, 0,33 % o menys | 5 % o menys | No | Una sola mostra, 3 minuts després d'arrencar l'equip i per tant no en repòs; cal repetir-la |
 
 ## 7. Pla de proves
 La columna «Resultat» només s'omple amb el que s'ha executat de veritat; la resta queda com a **Pendent**. Els resultats detallats són als documents de cada servei.
@@ -113,7 +120,7 @@ Convencions: `W-N06` web, `F-N06` FTP, `S-N06` SSH, `B-N06` base de dades, `DNS-
 ### 7.1 Proves funcionals
 | ID | Prova | Ordre o acció | Resultat esperat | Resultat |
 |---|---|---|---|---|
-| F1 | Contenidors en marxa | `docker compose ps` | Tots els serveis en estat `running` o `healthy` | **Pendent** (es cobreix amb A1) |
+| F1 | Contenidors en marxa | `docker compose ps` | Tots els serveis en estat `running` o `healthy` | Verificat el 23/11/2026 i el 25/11/2026: els vuit `healthy` |
 | F2 | Dades carregades | `SELECT COUNT(*)` a la taula carregada | 2.709 files | Verificat (doc 03) |
 | F3 | Web per HTTPS amb credencials | `curl -k -u usuari:contrasenya https://<host>/` | `200` | Verificat (doc 06) |
 | F4 | Redirecció HTTP a HTTPS | `curl -I http://<host>/` | `301` | Verificat (doc 06) |
@@ -146,8 +153,9 @@ Convencions: `W-N06` web, `F-N06` FTP, `S-N06` SSH, `B-N06` base de dades, `DNS-
 | C1 | Caiguda de la BD | `docker stop B-N06` i observar el tauler | La sonda MySQL passa a caiguda | Verificat el 23/11/2026 (doc 26) |
 | C2 | Recuperació de la BD | `docker start B-N06` | La sonda torna a estar activa | Verificat el 23/11/2026 (doc 26) |
 | C3 | Recreació d'un servei | `docker compose up -d --force-recreate <servei>` | El servei torna a estar actiu | Verificat amb `dns` |
-| C4 | Còpia i restauració de la BD | `mysqldump` i restauració | Les files tornen a ser 2.709 | **Pendent**: la còpia es descriu al doc 03 però no s'ha provat la restauració |
-| C5 | Reinici de l'host | Reiniciar i tornar a executar `xarxa-clients.sh` | Els clients tornen a tenir accés | **Pendent** |
+| C4 | Còpia i restauració de la BD | `mysqldump` i restauració | Les files tornen a ser 2.709 | Verificat el 26/11/2026: còpia, restauració en una taula temporal (`equipaments_copia`) i recompte de 2.709 files; `mysqldump` mostra un error de privilegi `PROCESS` que no impedeix la còpia (doc 03, apartat 5.8) |
+| C5 | Reinici de l'host | Reiniciar i tornar a executar `xarxa-clients.sh` | Els clients tornen a tenir accés | **Parcial**: l'equip es va reiniciar sol (arrencs del 25/11/2026 a les 16:09 i del 26/11/2026 a les 11:00, segons `uptime -s`); els vuit contenidors van tornar sols i `healthy`, i `comprova.sh` va donar 17 `PASS` el 25/11. Falta comprovar l'accés dels clients |
+| C6 | Caiguda d'un contenidor | `sudo kill -9 <PID principal>` de `S-N06` | Es reinicia sol en 60 s o menys | Verificat el 26/11/2026: `sshd` torna a respondre en 1 s. Amb `docker kill` no es reinicia |
 
 ### 7.4 Proves de monitorització
 | ID | Prova | Resultat esperat | Resultat |
@@ -160,11 +168,11 @@ Convencions: `W-N06` web, `F-N06` FTP, `S-N06` SSH, `B-N06` base de dades, `DNS-
 | M6 | Estat des de l'script | `estat_sondes.py` mostra les cinc sondes | Verificat (doc 26) |
 
 ### 7.5 Proves d'automatització
-L'script `scripts/comprova.sh` executa part de les proves anteriors i mostra `PASS` o `FAIL` per a cadascuna. Cobreix F1, F3, F4, F6, S2 i S5, entre d'altres.
+L'script `scripts/comprova.sh` executa part de les proves anteriors i mostra `PASS` o `FAIL` per a cadascuna. Cobreix F1, F3, F4, F6, S4, S5, S6 i S7; també comprova que hi ha taules a la BBDD i que `sshd` té `permitrootlogin no`.
 
 | ID | Prova | Resultat |
 |---|---|---|
-| A1 | Executar `./scripts/comprova.sh` a l'host | **Pendent** d'executar i anotar la sortida |
+| A1 | Executar `./scripts/comprova.sh` a l'host | Verificat el 23/11/2026 i el 25/11/2026 (després del reinici): 17 `PASS` i 0 `FAIL` |
 
 ### 7.6 Com s'anota un resultat
 1. Executar la prova i copiar la sortida real.
@@ -180,3 +188,4 @@ L'script `scripts/comprova.sh` executa part de les proves anteriors i mostra `PA
 | 1.3 | 18/11/2026 | P2 es mesura des de la BBDD, perquè el client surt a Internet per Isard |
 | 1.4 | 19/11/2026 | Primera mesura de P5 (càrrega del CSV) |
 | 2.0 | 23/11/2026 | S'hi integra el pla de proves (abans en un document a part), s'actualitza l'estat de les sondes i s'ajusta D1 a les sondes reals (cinc, cada 20 s) |
+| 2.1 | 26/11/2026 | Primeres mesures de D2, D3, P2, P4, R1 i R2; proves C4, C6 i A1; C5 parcial |
