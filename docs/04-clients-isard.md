@@ -6,7 +6,7 @@
 | **Mòdul** | 0379 · Projecte intermodular (ASIX) |
 | **Equip** | G06 (ASIXc2B) · identificador N06 |
 | **Autor** | Josep Pérez |
-| **Versió** | 1.2 · 20/11/2026 · Sprint 2 |
+| **Versió** | 1.3 · 26/11/2026 · Sprint 2 |
 
 ## Índex
 1. [Objectiu i abast](#1-objectiu-i-abast)
@@ -26,7 +26,7 @@ L'enunciat demana dos PC, un Windows i un Linux. En aquest projecte no són cont
 |---|---|---|---|---|
 | Equip dels serveis | Ubuntu 24 (Docker) | `ubuntu-24.04-desktop` (al *prompt* surt com a `ubuntu-24`) | 192.168.50.22/24 (`enp3s0`) | Fet |
 | Client Linux | Ubuntu 24 | `PC-L-N06` | 192.168.50.50/24 | Verificat el 20/11/2026 (apartat 5) |
-| Client Windows | Windows | `PC-W-N06` | 192.168.50.60/24 | Pendent |
+| Client Windows | Windows | `PC-W-N06` | 192.168.50.60/24 | Pendent (responsable: Hèctor Martí) |
 
 La VM del client Linux té **una sola targeta de xarxa**, la d'`itb 6` (`enp1s0` en aquesta VM; el nom de la targeta pot ser diferent segons la VM, es veu amb `ip -br addr`). Abans de fixar les adreces .50 i .60 es va comprovar amb `ping` que cap altre equip d'`itb 6` no les feia servir.
 
@@ -159,7 +159,7 @@ su - bchecker -c "whoami"
 *Figura 1. Proves del client Linux (20/11/2026).*
 
 ## 6. Client Windows (PC-W-N06)
-Pendent. Procediment previst:
+Responsable: Hèctor Martí. Estat: pendent. Procediment previst, que Hèctor Martí ha de fer i verificar a la seva màquina virtual (en acabar, s'hi afegeixen els resultats i la data):
 1. Màquina virtual Windows a Isard amb la targeta d'`itb 6`.
 2. Adreça fixa 192.168.50.60/24, amb 192.168.50.22 com a *gateway* i la ruta cap a la intranet.
 3. MTU a 1500 i ruta cap a la intranet, des d'una consola d'administrador (el nom de la targeta es veu amb `netsh interface ipv4 show interfaces`):
@@ -189,3 +189,4 @@ route -p add 10.213.2.0 mask 255.255.255.0 192.168.50.22
 | 1.0 | 17/11/2026 | Primera versió: connexió per itb 6 amb `ipvlan` i configuració del client Linux |
 | 1.1 | 18/11/2026 | Els clients arriben a la intranet per enrutament a través de l'equip dels serveis, amb adreces d'itb 6, perquè `ipvlan` impedia el pas pel router |
 | 1.2 | 20/11/2026 | Client Linux verificat (BBDD, port 3306, ruta i usuari `bchecker`); una sola targeta (`enp1s0`); sortida a Internet pel NAT de l'equip dels serveis (`--internet`) |
+| 1.3 | 26/11/2026 | El client Windows consta com a pendent i amb Hèctor Martí com a responsable |
